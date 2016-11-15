@@ -21,7 +21,7 @@ import android.widget.Toast;
 
 import com.example.harish.geomindr.MainActivity;
 import com.example.harish.geomindr.R;
-import com.example.harish.geomindr.activity.map.TaskMapActivity;
+import com.example.harish.geomindr.activity.map.TaskMap;
 import com.example.harish.geomindr.database.DatabaseHelper;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
@@ -32,11 +32,17 @@ import java.util.List;
 import static android.widget.Toast.makeText;
 
 public class AlarmTask extends AppCompatActivity {
-    private final static int ALARM_REQUEST = 1;
+    public final static int ALARM_REQUEST = 1;
+    // Name of the location where alarm needs to be triggered.
     String locationName;
+    // LatLang of the location where alarm needs to be triggered.
     double latitude, longitude;
-    int radius;
-    String alarmTitle, alarmDesc;
+    // Radius around location within which alarm needs to be triggered.
+    int triggerRadius;
+    // Title of the alarm.
+    String title;
+    // Alarm description.
+    String description;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,22 +50,26 @@ public class AlarmTask extends AppCompatActivity {
         setContentView(R.layout.activity_alarm_task);
         setTitle("Add Alarm Task Reminder");
 
-        final EditText mAlarmTitle = (EditText) findViewById(R.id.alarmTitle);
-        final EditText mAlarmDesc = (EditText) findViewById(R.id.alarmDesc);
-        final EditText mAlarmLocation = (EditText) findViewById(R.id.alarmLocation);
-        Button mBtnAlarmSave = (Button) findViewById(R.id.btnAlarmSave);
-        Button mBtnAlarmDiscard = (Button) findViewById(R.id.btnAlarmDiscard);
-        FloatingActionButton mFABAddLocation = (FloatingActionButton) findViewById(R.id.fabAddLocation);
-        final DiscreteSeekBar mRadius = (DiscreteSeekBar) findViewById(R.id.radius);
+        // Initializing View objects.
+        final EditText alarmTitle = (EditText) findViewById(R.id.alarm_title);
+        final EditText alarmDescription = (EditText) findViewById(R.id.alarm_description);
+        final EditText alarmLocation = (EditText) findViewById(R.id.alarm_location);
+        Button btnAlarmSave = (Button) findViewById(R.id.btnAlarmSave);
+        Button btnAlarmDiscard = (Button) findViewById(R.id.btnAlarmDiscard);
+        FloatingActionButton FABAddLocation = (FloatingActionButton) findViewById(R.id.fabAddLocation);
+        final DiscreteSeekBar radius = (DiscreteSeekBar) findViewById(R.id.radius);
 
-        mBtnAlarmSave.getBackground().setColorFilter(
+        // Setting background color for 'Save Reminder' button.
+        btnAlarmSave.getBackground().setColorFilter(
                 ResourcesCompat.getColor(getResources(), R.color.colorPrimaryDark, null),
                 PorterDuff.Mode.MULTIPLY);
-        mBtnAlarmDiscard.getBackground().setColorFilter(
+        // Setting background color for 'Discard Reminder' button.
+        btnAlarmDiscard.getBackground().setColorFilter(
                 ResourcesCompat.getColor(getResources(), R.color.colorPrimaryDark, null),
                 PorterDuff.Mode.MULTIPLY);
 
-        mFABAddLocation.setOnClickListener(new View.OnClickListener() {
+        // Click listener on 'Add Location' FloatingActionButton
+        FABAddLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // First check if the device is connected to the internet.
@@ -67,36 +77,46 @@ public class AlarmTask extends AppCompatActivity {
                         getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
+                // If device is connected, open the 'TaskMap' activity.
                 if (networkInfo != null && networkInfo.isConnected()) {
-                    Intent a = new Intent(AlarmTask.this, TaskMapActivity.class);
+                    Intent a = new Intent(AlarmTask.this, TaskMap.class);
                     a.putExtra("taskId", 2);
                     startActivityForResult(a, ALARM_REQUEST);
-                } else {
-                    Toast.makeText(AlarmTask.this, "Please connect to the internet.", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(AlarmTask.this, "Please connect to the internet.",
+                            Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        mBtnAlarmSave.setOnClickListener(new View.OnClickListener() {
+        // Click listener on 'Save Reminder' button.
+        // It validates all fields before saving the reminder.
+        // It also validates location entered by the user.
+        btnAlarmSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                alarmTitle = mAlarmTitle.getText().toString();
-                alarmDesc = mAlarmDesc.getText().toString();
-                locationName = mAlarmLocation.getText().toString();
+                title = alarmTitle.getText().toString();
+                description = alarmDescription.getText().toString();
+                locationName = alarmLocation.getText().toString();
 
-                if (alarmTitle.isEmpty()) {
-                    Toast.makeText(AlarmTask.this, "Please enter alarm task title.", Toast.LENGTH_SHORT).show();
+                if (title.isEmpty()) {
+                    Toast.makeText(AlarmTask.this, "Please enter alarm task title.",
+                            Toast.LENGTH_SHORT).show();
                 }
-                else if (alarmDesc.isEmpty()) {
-                    Toast.makeText(AlarmTask.this, "Please enter alarm task description.", Toast.LENGTH_SHORT).show();
+                else if (description.isEmpty()) {
+                    Toast.makeText(AlarmTask.this, "Please enter alarm task description.",
+                            Toast.LENGTH_SHORT).show();
                 }
                 else if (locationName.isEmpty()) {
-                    Toast.makeText(AlarmTask.this, "Please select a location.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AlarmTask.this, "Please select a location.",
+                            Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    radius = mRadius.getProgress();
+                    triggerRadius = radius.getProgress();
                     // Check if the location set by the user is a valid location.
                     if (ifLocationValid(locationName)) {
+                        // If location is valid, show the confirm dialog box.
                         showConfirmDialogBox();
                     }
                     else {
@@ -107,7 +127,8 @@ public class AlarmTask extends AppCompatActivity {
             }
         });
 
-        mBtnAlarmDiscard.setOnClickListener(new View.OnClickListener() {
+        // Click listener for 'Discard Reminder' button.
+        btnAlarmDiscard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showDiscardDialogBox();
@@ -115,6 +136,8 @@ public class AlarmTask extends AppCompatActivity {
         });
     }
 
+    // Dialog box to confirm that user wants to add the reminder.
+    // If user confirms, we add the reminder to the database.
     private void showConfirmDialogBox() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 
@@ -127,25 +150,25 @@ public class AlarmTask extends AppCompatActivity {
         // To prevent dismiss dialog box on back key pressed.
         alertDialog.setCancelable(false);
 
-        // On pressing Yes button, save data in the database
+        // On pressing Yes button, save data in the database.
         alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                // Close the dialog box
+                // Close the dialog box.
                 dialog.cancel();
 
                 DatabaseHelper databaseHelper = DatabaseHelper.getInstance(AlarmTask.this);
 
-                // getting SharedPreference instance
+                // getting SharedPreference instance.
                 SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("COUNTER", Context.MODE_PRIVATE);
                 // getting SharedPreferences.Editor instance
-                // SharedPreferences.Editor instance is required to edit the SharedPreference file
+                // SharedPreferences.Editor instance is required to edit the SharedPreference file.
                 SharedPreferences.Editor editor = sharedPreferences.edit();
 
                 // insert the record into the database
                 long isInserted = databaseHelper.insertRecord(sharedPreferences.getInt("counter", -1), 2, 1,
-                        alarmTitle, null, null, alarmDesc, null, locationName, latitude, longitude, radius);
+                        title, null, null, description, null, locationName, latitude, longitude, triggerRadius);
 
-                // check whether the record is successfully inserted or not
+                // check whether the record is successfully inserted or not.
                 if(isInserted >= 0) {
                     makeText(AlarmTask.this, "Reminder created.", Toast.LENGTH_LONG).show();
                     editor.putInt("counter", sharedPreferences.getInt("counter", -1) + 1);
@@ -155,22 +178,24 @@ public class AlarmTask extends AppCompatActivity {
                     makeText(AlarmTask.this, "Reminder not created. Please try again.", Toast.LENGTH_LONG).show();
                 }
 
-                // start 'HomeFragment' fragment
+                // start 'HomeFragment' fragment.
                 startHomeFragment();
             }
         });
 
-        // On pressing No button, dismiss the dialog box
+        // On pressing No button, dismiss the dialog box.
         alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
             }
         });
 
-        // Showing Alert Message
+        // Showing Alert Message.
         alertDialog.show();
     }
 
+    // Dialog box to confirm that user wants to discard the reminder.
+    // If user confirms, we go back to 'HomeFragment' fragment.
     private void showDiscardDialogBox() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 
@@ -183,7 +208,7 @@ public class AlarmTask extends AppCompatActivity {
         // To prevent dismiss dialog box on back key pressed.
         alertDialog.setCancelable(false);
 
-        // On pressing Yes button, discard the reminder and take user to home activity
+        // On pressing Yes button, discard the reminder and take user to home activity.
         alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
@@ -191,14 +216,14 @@ public class AlarmTask extends AppCompatActivity {
             }
         });
 
-        // On pressing No button, dismiss the dialog box
+        // On pressing No button, dismiss the dialog box.
         alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
             }
         });
 
-        // Showing Alert Message
+        // Showing Alert Message.
         alertDialog.show();
     }
 
@@ -213,16 +238,18 @@ public class AlarmTask extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        //If size is 0 then wrong item is entered.
+        // If size is 0 then wrong item is entered.
         return addressList!= null && addressList.size() > 0;
     }
 
+    // Start 'HomeFragment' fragment.
     private void startHomeFragment() {
         Intent intent = new Intent(AlarmTask.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
     }
 
+    // Get the location name, latitude and longitude returned by 'TaskMap' activity.
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == ALARM_REQUEST) {
@@ -230,12 +257,13 @@ public class AlarmTask extends AppCompatActivity {
                 locationName = data.getStringExtra("locationName");
                 latitude = data.getDoubleExtra("latitude", 0.0);
                 longitude = data.getDoubleExtra("longitude", 0.0);
-                EditText mAlarmLocation = (EditText) findViewById(R.id.alarmLocation);
-                mAlarmLocation.setText(locationName);
+                EditText alarmLocation = (EditText) findViewById(R.id.alarm_location);
+                alarmLocation.setText(locationName);
             }
         }
     }
 
+    // Confirm before user actually goes back to 'HomeFragment' fragment.
     @Override
     public void onBackPressed() {
         showDiscardDialogBox();

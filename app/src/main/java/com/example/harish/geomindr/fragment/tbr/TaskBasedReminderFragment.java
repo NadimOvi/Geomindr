@@ -45,6 +45,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.harish.geomindr.R;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -83,6 +84,13 @@ public class TaskBasedReminderFragment extends Fragment implements RecyclerView.
     @Override
     public void onClick(View v) {
 
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_task_based_rem, container, false);
     }
 
     /*private static final int PICK_CONTACT_REQUEST = 0;
@@ -270,7 +278,7 @@ public class TaskBasedReminderFragment extends Fragment implements RecyclerView.
             public void onClick(View v) {
                 buttonCheck = 1;
                 //GIVE THE CURRENT LOCATION HERE INSTEAD OF THE BELOW HARD CODED DOUBLE VALUE
-                Intent a = new Intent(getContext(), TaskMapActivity.class);
+                Intent a = new Intent(getContext(), TaskMap.class);
                 a.putExtra("taskId", 2);
                 *//*a.putExtra("Longitude",curr_lon);*//*
                 startActivityForResult(a, ALARM_REQUEST);
@@ -286,7 +294,7 @@ public class TaskBasedReminderFragment extends Fragment implements RecyclerView.
                 // TODO: NAYEEM
                 buttonCheck=2;
                 //GIVE THE CURRENT LOCATION HERE INSTEAD OF THE BELOW HARD CODED DOUBLE VALUE
-                Intent a = new Intent(getContext(), TaskMapActivity.class);
+                Intent a = new Intent(getContext(), TaskMap.class);
                 a.putExtra("taskId", 3);
                 *//*a.putExtra("Latitude",curr_lat);
                 a.putExtra("Longitude",curr_lon);*//*

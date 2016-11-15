@@ -2,34 +2,34 @@ package com.example.harish.geomindr.activity.reminder.view;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Typeface;
 import android.os.Vibrator;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.graphics.Typeface;
 
 import com.example.harish.geomindr.R;
 import com.example.harish.geomindr.database.DatabaseHelper;
 import com.github.clans.fab.FloatingActionButton;
-import com.github.clans.fab.FloatingActionMenu;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
 import static com.github.clans.fab.FloatingActionButton.SIZE_MINI;
 
 public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecyclerAdapter.ViewHolder> {
-    static List<Reminder> reminderList;
-    Context context;
+    // List containing all the reminder in the database.
+    public static List<Reminder> reminderList;
+    // Context from which the class 'ReminderRecyclerAdapter' is called.
+    private Context context;
     private SparseBooleanArray selectedRecyclerViewItems;
     private Vibrator vibratorService;
+    // Total number of reminder in the database.
     private int totalRemNum;
+    // Current reminder.
+    // It is used for providing custom padding to the reminders displayed on the app inside CardView.
     private int currentRemNum;
 
 
@@ -41,18 +41,18 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
 
         reminderList = new ArrayList<>();
 
-        // creating an object of DatabaseHelper class
+        // Creating an object of DatabaseHelper class.
         DatabaseHelper databaseHelper = DatabaseHelper.getInstance(context);
 
-        // retrieving all records from the database
+        // Retrieving all records from the database.
         Cursor res = databaseHelper.getAllRecords();
 
         totalRemNum = res.getCount();
         currentRemNum = 1;
 
-        // iterating through the retrieved records
+        // Iterating through the retrieved records.
         while(res.moveToNext()) {
-            // add the data to the reminderList
+            // Add the data to the 'reminderList' list.
             reminderList.add(new Reminder(res.getInt(0), res.getInt(1), res.getInt(2),
                     res.getString(3), res.getString(4), res.getString(5), res.getString(6),
                     res.getString(7), res.getString(8), res.getDouble(9), res.getDouble(10)));
@@ -76,14 +76,14 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
         holder.time.setText(reminder.getLocation());
         holder.description.setText(reminder.getDescription());
 
+        // Set custom image on the FloatingActionButton on CardView displaying the reminder
+        // If taskIf = 1, then it is a facebook task reminder. So, set the image accordingly.
         if (reminder.getTaskId() == 1) {
             holder.mFABIcon.setImageResource(R.drawable.ic_fab_facebook);
         }
+        // If taskIf = 2, then it is a alarm task reminder. So, set the image accordingly.
         else if (reminder.getTaskId() == 2) {
             holder.mFABIcon.setImageResource(R.drawable.ic_alarm_white_24dp);
-        }
-        else if (reminder.getTaskId() == 3) {
-
         }
 
         holder.itemView.setActivated(selectedRecyclerViewItems.get(position, false));
@@ -126,19 +126,22 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
         return items;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         private TextView title, time, description;
         private FloatingActionButton mFABIcon;
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             super(view);
 
-            mFABIcon = (FloatingActionButton) view.findViewById(R.id.fabIcon);
+            // Setting ActionButton attributes displayed on the CardView displaying reminder.
+            mFABIcon = (FloatingActionButton) view.findViewById(R.id.fab_icon);
             mFABIcon.setButtonSize(SIZE_MINI);
             mFABIcon.setColorNormalResId(R.color.darkGray);
             mFABIcon.setColorPressedResId(R.color.darkGray);
             mFABIcon.setColorRippleResId(R.color.darkGray);
 
+            // If it is the first reminder, then
+            // give a top padding of 10dp and bottom padding of 5dp.
             if (currentRemNum == 1) {
                 float scale = view.getResources().getDisplayMetrics().density;
                 int paddingTop = (int) (10*scale + 0.5f);
@@ -149,6 +152,8 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
                 description = (TextView) view.findViewById(R.id.rem_description);
                 currentRemNum++;
             }
+            // If it is the last reminder, then
+            // give a top padding of 5dp and bottom padding of 10dp.
             else if (currentRemNum == totalRemNum) {
                 float scale = view.getResources().getDisplayMetrics().density;
                 int paddingTop = (int) (5*scale + 0.5f);
@@ -158,6 +163,7 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
                 time = (TextView) view.findViewById(R.id.rem_time);
                 description = (TextView) view.findViewById(R.id.rem_description);
             }
+            // Else, give a top and bottom padding of 5dp.
             else {
                 float scale = view.getResources().getDisplayMetrics().density;
                 int paddingTop = (int) (5*scale + 0.5f);

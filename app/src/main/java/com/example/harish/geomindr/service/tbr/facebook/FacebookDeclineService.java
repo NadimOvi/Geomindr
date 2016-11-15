@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.widget.Toast;
 
+// Service that gets called when user selects NO
+// on the facebook task notification.
 public class FacebookDeclineService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {

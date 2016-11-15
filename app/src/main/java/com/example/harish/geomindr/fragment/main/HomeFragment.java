@@ -1,8 +1,6 @@
 package com.example.harish.geomindr.fragment.main;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -21,8 +19,8 @@ import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
 public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchListener, View.OnClickListener{
-    RecyclerView mTaskReminderList;
-    ReminderRecyclerAdapter mAdapter;
+    RecyclerView taskReminderList;
+    ReminderRecyclerAdapter adapter;
 
     @Nullable
     @Override
@@ -30,18 +28,22 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
+        // Setting the FloatingActionMenu and FloatingActionButtons.
         final FloatingActionMenu addReminderFAM = (FloatingActionMenu)
-                view.findViewById(R.id.addReminderFAM);
+                view.findViewById(R.id.add_reminder);
         final FloatingActionButton fabTBR = (FloatingActionButton)
-                view.findViewById(R.id.fabTBR);
+                view.findViewById(R.id.fab_tbr);
         final FloatingActionButton fabEBR = (FloatingActionButton)
-                view.findViewById(R.id.fabEBR);
+                view.findViewById(R.id.fab_ebr);
         final FloatingActionButton fabTBRFacebook = new FloatingActionButton(getContext());
         final FloatingActionButton fabTBRAlarm = new FloatingActionButton(getContext());
         final FloatingActionButton fabTBRMessage = new FloatingActionButton(getContext());
 
-        mTaskReminderList = (RecyclerView) view.findViewById(R.id.taskReminderList);
+        // RecyclerViewObject.
+        taskReminderList = (RecyclerView) view.findViewById(R.id.reminder_list);
 
+        // Setting the 'Facebook Task' FloatingActionButton programmatically
+        // because we will show it only if user clicks on 'Task Based Reminder' FloatingActionButton.
         fabTBRFacebook.setImageResource(R.drawable.ic_fab_facebook);
         fabTBRFacebook.setButtonSize(FloatingActionButton.SIZE_MINI);
         fabTBRFacebook.setLabelText("Facebook Task");
@@ -49,6 +51,8 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
         fabTBRFacebook.setColorPressedResId(R.color.colorPrimaryDark);
         fabTBRFacebook.setColorRippleResId(R.color.colorPrimaryDark);
 
+        // Setting the 'Alarm Task' FloatingActionButton programmatically
+        // because we will show it only if user clicks on 'Task Based Reminder' FloatingActionButton.
         fabTBRAlarm.setImageResource(R.drawable.ic_fab_alarm);
         fabTBRAlarm.setButtonSize(FloatingActionButton.SIZE_MINI);
         fabTBRAlarm.setLabelText("Alarm Task");
@@ -56,6 +60,8 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
         fabTBRAlarm.setColorPressedResId(R.color.colorPrimaryDark);
         fabTBRAlarm.setColorRippleResId(R.color.colorPrimaryDark);
 
+        // Setting the 'Message Task' FloatingActionButton programmatically
+        // because we will show it only if user clicks on 'Task Based Reminder' FloatingActionButton.
         fabTBRMessage.setImageResource(R.drawable.ic_textsms_white_24dp);
         fabTBRMessage.setButtonSize(FloatingActionButton.SIZE_MINI);
         fabTBRMessage.setLabelText("Message Task");
@@ -63,6 +69,8 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
         fabTBRMessage.setColorPressedResId(R.color.colorPrimaryDark);
         fabTBRMessage.setColorRippleResId(R.color.colorPrimaryDark);
 
+        // If the 'Task Based Reminder' FloatingActionButton is clicked, then
+        // add or remove the above 3 buttons programmatically.
         fabTBR.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (fabTBRFacebook.getParent() == null
@@ -85,6 +93,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
             }
         });
 
+        // Start 'FacebookTask' activity to add a new facebook task reminder.
         fabTBRFacebook.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -92,6 +101,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
             }
         });
 
+        // Start 'AlarmTask' activity to add a new alarm task reminder.
         fabTBRAlarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,6 +110,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
             }
         });
 
+        // Start 'MessageTask' activity to add a new message task reminder.
         fabTBRMessage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -107,13 +118,14 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
             }
         });
 
-        mAdapter = new ReminderRecyclerAdapter(getContext());
+        // Setting up the RecyclerView with reminders present in the database.
+        adapter = new ReminderRecyclerAdapter(getContext());
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
-        mTaskReminderList.setLayoutManager(mLayoutManager);
-        mTaskReminderList.setItemAnimator(new DefaultItemAnimator());
-        mTaskReminderList.setAdapter(mAdapter);
-        mTaskReminderList.addOnItemTouchListener(this);
-        mAdapter.notifyDataSetChanged();
+        taskReminderList.setLayoutManager(mLayoutManager);
+        taskReminderList.setItemAnimator(new DefaultItemAnimator());
+        taskReminderList.setAdapter(adapter);
+        taskReminderList.addOnItemTouchListener(this);
+        adapter.notifyDataSetChanged();
 
         return view;
     }

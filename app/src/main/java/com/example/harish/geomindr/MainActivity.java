@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     // Request code for asking permission for accessing user's location.
-    private static final int PERMISSION_LOCATION_REQUEST_CODE = 1;
+    public static final int PERMISSION_LOCATION_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

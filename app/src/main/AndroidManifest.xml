@@ -73,7 +73,7 @@
             android:name=".service.tbr.facebook.FacebookSelectAgainService"
             android:enabled="true"/>
 
-        <activity android:name=".activity.map.TaskMapActivity" />
+        <activity android:name=".activity.map.TaskMap" />
         <activity android:name=".activity.tbr.alarm.AlarmTask" />
     </application>
 

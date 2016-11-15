@@ -7,11 +7,15 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.widget.Toast;
 
+// Service that gets called when user selects NO
+// on the message task notification.
 public class MessageDeclineService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(this, "You declined to send message. Message not sent.", Toast.LENGTH_LONG).show();
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        Toast.makeText(this, "You declined to send message. Message not sent.",
+                Toast.LENGTH_LONG).show();
+        NotificationManager notificationManager = (NotificationManager)
+                getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancel(3);
         return START_STICKY;
     }
