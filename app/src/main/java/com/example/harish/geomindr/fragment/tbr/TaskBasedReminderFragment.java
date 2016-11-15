@@ -136,7 +136,7 @@ public class TaskBasedReminderFragment extends Fragment implements RecyclerView.
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_taskrem, container, false);
+        View view = inflater.inflate(R.layout.fragment_task_based_rem, container, false);
 
         task_remlist = (RecyclerView) view.findViewById(R.id.task_rem_list);
         parent_layout = (CoordinatorLayout) view.findViewById(R.id.taskrem_coordinatorlayout);

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="in.ac.iiitd.geomindr.activity.main.MainActivity">
+    tools:context="com.example.harish.geomindr.MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"

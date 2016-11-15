@@ -9,16 +9,16 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="in.ac.iiitd.geomindr.activity.tbr.alarm.AlarmTask">
+    tools:context="com.example.harish.geomindr.activity.tbr.alarm.AlarmTask">
 
     <android.support.design.widget.TextInputLayout
-        android:id="@+id/textInputLayoutTitle"
+        android:id="@+id/text_input_layout_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp">
 
         <EditText
-            android:id="@+id/alarmTitle"
+            android:id="@+id/alarm_title"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:hint="@string/alarm_task_title"
@@ -26,15 +26,15 @@
     </android.support.design.widget.TextInputLayout>
 
     <android.support.design.widget.TextInputLayout
-        android:id="@+id/textInputLayoutDesc"
+        android:id="@+id/text_input_layout_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textInputLayoutTitle"
+        android:layout_below="@+id/text_input_layout_title"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp">
 
         <EditText
-            android:id="@+id/alarmDesc"
+            android:id="@+id/alarm_description"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:hint="@string/alarm_task_desc"
@@ -42,14 +42,14 @@
     </android.support.design.widget.TextInputLayout>
 
     <RelativeLayout
-        android:id="@+id/locationLayout"
+        android:id="@+id/location_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textInputLayoutDesc"
+        android:layout_below="@+id/text_input_layout_description"
         android:layout_marginTop="10dp">
 
         <android.support.design.widget.TextInputLayout
-            android:id="@+id/textInputLayoutLocation"
+            android:id="@+id/text_input_location_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="70sp"
@@ -57,7 +57,7 @@
             android:layout_alignParentStart="true">
 
             <EditText
-                android:id="@+id/alarmLocation"
+                android:id="@+id/alarm_location"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:hint="@string/alarm_task_location"
@@ -80,7 +80,7 @@
         android:id="@+id/radius"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/locationLayout"
+        android:layout_below="@id/location_layout"
         android:layout_marginTop="20dp"
         app:dsb_min="100"
         app:dsb_max="2000"

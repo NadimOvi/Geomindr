@@ -9,15 +9,15 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="in.ac.iiitd.geomindr.activity.map.TaskMapActivity">
+    tools:context="com.example.harish.geomindr.activity.map.TaskMapActivity">
 
     <RelativeLayout
-        android:id="@+id/locationLayout"
+        android:id="@+id/location_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <android.support.design.widget.TextInputLayout
-            android:id="@+id/textInputLayoutLocation"
+            android:id="@+id/text_input_layout_location"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="100sp"
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:textAllCaps="false"
             android:text="@string/map_search"
-            android:id="@+id/btnSearch"
+            android:id="@+id/btn_search"
             android:textColor="#ffffff"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"/>
@@ -47,22 +47,22 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/locationLayout"
-        android:id="@+id/btnUseLocation"
+        android:layout_below="@+id/location_layout"
+        android:id="@+id/btn_use_location"
         android:textColor="#ffffff"
         android:layout_marginTop="10dp"/>
 
     <fragment
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/btnUseLocation"
+        android:layout_below="@+id/btn_use_location"
         android:layout_marginTop="10dp"
         android:id="@+id/map"
         tools:context=".MainActivity"
         android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
     <com.github.clans.fab.FloatingActionButton
-        android:id="@+id/fabMyLocation"
+        android:id="@+id/fab_my_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         fab:fab_colorNormal="#4a80f5"
@@ -70,7 +70,7 @@
         fab:fab_colorRipple="#4a80f5"
         android:src="@drawable/ic_my_location_white_24dp"
         fab:fab_size="mini"
-        android:layout_below="@id/btnUseLocation"
+        android:layout_below="@id/btn_use_location"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="10sp"
         android:layout_marginTop="20sp" />

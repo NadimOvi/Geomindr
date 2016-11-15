@@ -22,4 +22,6 @@
     <string name="alarm_discard">Discard Reminder</string>
     <string name="map_search">Search</string>
     <string name="facebook_icon">&#xf09a;</string>
+    <string name="rem_delete">Delete</string>
+    <string name="rem_edit">Edit</string>
 </resources>
