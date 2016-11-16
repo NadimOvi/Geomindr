@@ -249,7 +249,8 @@ public class MainActivity extends AppCompatActivity
         alertDialog.setTitle("ALERT");
 
         // Setting Dialog Message.
-        alertDialog.setMessage("Please allow the app to access your device's location to continue.");
+        alertDialog.setMessage("The app won't be able to function without access to your device's location." +
+                "Please allow access to continue.");
 
         // To prevent dismiss dialog box on back key pressed.
         alertDialog.setCancelable(false);
@@ -283,13 +284,14 @@ public class MainActivity extends AppCompatActivity
         alertDialog.setTitle("ALERT");
 
         // Setting Dialog Message.
-        alertDialog.setMessage("GPS is not enabled. Do you want to enable it from settings menu?");
+        alertDialog.setMessage("The app uses your device's GPS to give location specific reminders. Please enable" +
+                " GPS to make the app function properly.");
 
         // To prevent dismiss dialog box on back key pressed.
         alertDialog.setCancelable(false);
 
         // On pressing Settings button, take user to GPS settings menu.
-        alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+        alertDialog.setPositiveButton("Enable", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 startActivity(intent);
@@ -297,7 +299,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         // On pressing cancel button, show alert to the user.
-        alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
             }

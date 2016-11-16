@@ -32,7 +32,7 @@ import java.util.List;
 import static android.widget.Toast.makeText;
 
 public class AlarmTask extends AppCompatActivity {
-    public final static int ALARM_REQUEST = 1;
+    public final static int ALARM_MAP_REQUEST = 1;
     // Name of the location where alarm needs to be triggered.
     String locationName;
     // LatLang of the location where alarm needs to be triggered.
@@ -54,9 +54,9 @@ public class AlarmTask extends AppCompatActivity {
         final EditText alarmTitle = (EditText) findViewById(R.id.alarm_title);
         final EditText alarmDescription = (EditText) findViewById(R.id.alarm_description);
         final EditText alarmLocation = (EditText) findViewById(R.id.alarm_location);
-        Button btnAlarmSave = (Button) findViewById(R.id.btnAlarmSave);
-        Button btnAlarmDiscard = (Button) findViewById(R.id.btnAlarmDiscard);
-        FloatingActionButton FABAddLocation = (FloatingActionButton) findViewById(R.id.fabAddLocation);
+        Button btnAlarmSave = (Button) findViewById(R.id.btn_alarm_save);
+        Button btnAlarmDiscard = (Button) findViewById(R.id.btn_alarm_discard);
+        FloatingActionButton fabAddLocation = (FloatingActionButton) findViewById(R.id.fab_add_location);
         final DiscreteSeekBar radius = (DiscreteSeekBar) findViewById(R.id.radius);
 
         // Setting background color for 'Save Reminder' button.
@@ -69,7 +69,7 @@ public class AlarmTask extends AppCompatActivity {
                 PorterDuff.Mode.MULTIPLY);
 
         // Click listener on 'Add Location' FloatingActionButton
-        FABAddLocation.setOnClickListener(new View.OnClickListener() {
+        fabAddLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // First check if the device is connected to the internet.
@@ -81,7 +81,7 @@ public class AlarmTask extends AppCompatActivity {
                 if (networkInfo != null && networkInfo.isConnected()) {
                     Intent a = new Intent(AlarmTask.this, TaskMap.class);
                     a.putExtra("taskId", 2);
-                    startActivityForResult(a, ALARM_REQUEST);
+                    startActivityForResult(a, ALARM_MAP_REQUEST);
                 }
                 else {
                     Toast.makeText(AlarmTask.this, "Please connect to the internet.",
@@ -158,17 +158,17 @@ public class AlarmTask extends AppCompatActivity {
 
                 DatabaseHelper databaseHelper = DatabaseHelper.getInstance(AlarmTask.this);
 
-                // getting SharedPreference instance.
+                // Getting SharedPreference instance.
                 SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("COUNTER", Context.MODE_PRIVATE);
-                // getting SharedPreferences.Editor instance
+                // Getting SharedPreferences.Editor instance.
                 // SharedPreferences.Editor instance is required to edit the SharedPreference file.
                 SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                // insert the record into the database
+                // Insert the record into the database.
                 long isInserted = databaseHelper.insertRecord(sharedPreferences.getInt("counter", -1), 2, 1,
                         title, null, null, description, null, locationName, latitude, longitude, triggerRadius);
 
-                // check whether the record is successfully inserted or not.
+                // Check whether the record is successfully inserted or not.
                 if(isInserted >= 0) {
                     makeText(AlarmTask.this, "Reminder created.", Toast.LENGTH_LONG).show();
                     editor.putInt("counter", sharedPreferences.getInt("counter", -1) + 1);
@@ -178,7 +178,7 @@ public class AlarmTask extends AppCompatActivity {
                     makeText(AlarmTask.this, "Reminder not created. Please try again.", Toast.LENGTH_LONG).show();
                 }
 
-                // start 'HomeFragment' fragment.
+                // Start 'HomeFragment' fragment.
                 startHomeFragment();
             }
         });
@@ -239,7 +239,13 @@ public class AlarmTask extends AppCompatActivity {
         }
 
         // If size is 0 then wrong item is entered.
-        return addressList!= null && addressList.size() > 0;
+        if (addressList!= null && addressList.size() > 0) {
+            latitude = addressList.get(0).getLatitude();
+            longitude = addressList.get(0).getLongitude();
+            return true;
+        }
+
+        return false;
     }
 
     // Start 'HomeFragment' fragment.
@@ -252,11 +258,9 @@ public class AlarmTask extends AppCompatActivity {
     // Get the location name, latitude and longitude returned by 'TaskMap' activity.
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == ALARM_REQUEST) {
+        if(requestCode == ALARM_MAP_REQUEST) {
             if(resultCode == RESULT_OK) {
                 locationName = data.getStringExtra("locationName");
-                latitude = data.getDoubleExtra("latitude", 0.0);
-                longitude = data.getDoubleExtra("longitude", 0.0);
                 EditText alarmLocation = (EditText) findViewById(R.id.alarm_location);
                 alarmLocation.setText(locationName);
             }

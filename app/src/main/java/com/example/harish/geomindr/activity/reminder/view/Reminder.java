@@ -54,12 +54,13 @@ class Reminder {
     public String getTitle() {
         String title = this.title;
 
-        if(this.taskId == 3) {
+        if(this.taskId == 3 || this.taskId == 5) {
+            title = "Message ";
             if(this.name != null) {
-                title += " to " + this.name;
+                title += this.name;
             }
             else {
-                title += " to " + this.number;
+                title += this.number;
             }
         }
 
@@ -78,32 +79,27 @@ class Reminder {
         return location;
     }
 
-    SpannableStringBuilder getDescription() {
+    String getDescription() {
         String description = "\n";
-        SpannableStringBuilder ssb;
 
         // if it is a facebook post task
         if(this.taskId == 1) {
             description += this.arrivalMessage;
-            ssb = new SpannableStringBuilder(description);
         }
         // if it is a trigger alarm task
         else if(this.taskId == 2) {
             description += this.arrivalMessage;
-            ssb = new SpannableStringBuilder(description);
         }
-        // if it is a send message task
-        else {
-            description += "Upon Arrival - " + this.arrivalMessage + "\n";
-            description += "Upon Departure - " + this.departureMessage;
-
-            ssb = new SpannableStringBuilder(description);
-            ssb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, 14, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            ssb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 15 + this.arrivalMessage.length() + 2,
-                    15 + this.arrivalMessage.length() + 17, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        // if it is a send message task - arrival
+        else if(this.taskId == 3){
+            description += "Upon arrival - " + this.arrivalMessage;
+        }
+        // if it is a send message task - departure
+        else if(this.taskId == 5) {
+            description += "Upon departure - " + this.departureMessage;
         }
 
-        return ssb;
+        return description;
     }
 
     public int getTaskId() {

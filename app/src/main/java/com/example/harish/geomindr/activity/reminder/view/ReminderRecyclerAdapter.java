@@ -77,13 +77,17 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
         holder.description.setText(reminder.getDescription());
 
         // Set custom image on the FloatingActionButton on CardView displaying the reminder
-        // If taskIf = 1, then it is a facebook task reminder. So, set the image accordingly.
+        // If taskID = 1, then it is a facebook task reminder. So, set the image accordingly.
         if (reminder.getTaskId() == 1) {
             holder.mFABIcon.setImageResource(R.drawable.ic_fab_facebook);
         }
-        // If taskIf = 2, then it is a alarm task reminder. So, set the image accordingly.
+        // If taskID = 2, then it is a alarm task reminder. So, set the image accordingly.
         else if (reminder.getTaskId() == 2) {
             holder.mFABIcon.setImageResource(R.drawable.ic_alarm_white_24dp);
+        }
+        // If taskID = 3 or taskId = 5, then it is a message task reminder. So, set the image accordingly.
+        else if (reminder.getTaskId() == 3 || reminder.getTaskId() == 5) {
+            holder.mFABIcon.setImageResource(R.drawable.ic_textsms_white_24dp);
         }
 
         holder.itemView.setActivated(selectedRecyclerViewItems.get(position, false));

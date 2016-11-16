@@ -91,8 +91,6 @@ public class TaskMap extends AppCompatActivity implements OnMapReadyCallback {
 
                 // If everything is fine, send location and its LatLang to the calling activity.
                 returnIntent.putExtra("locationName", locationName);
-                returnIntent.putExtra("latitude", latitude);
-                returnIntent.putExtra("longitude", longitude);
                 setResult(Activity.RESULT_OK, returnIntent);
                 finish();
             }

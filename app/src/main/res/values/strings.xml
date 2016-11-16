@@ -18,10 +18,14 @@
     <string name="alarm_task_desc">Alarm Task Description</string>
     <string name="alarm_location_text_view">Location</string>
     <string name="alarm_task_location">Trigger Alarm at Location?</string>
-    <string name="alarm_save">Save Reminder</string>
-    <string name="alarm_discard">Discard Reminder</string>
+    <string name="save">Save Reminder</string>
+    <string name="discard">Discard Reminder</string>
     <string name="map_search">Search</string>
     <string name="facebook_icon">&#xf09a;</string>
     <string name="rem_delete">Delete</string>
     <string name="rem_edit">Edit</string>
+    <string name="message_task_phone_number">Recipient\'s Phone Number</string>
+    <string name="message_task_arrival">Message Upon Arrival</string>
+    <string name="message_task_departure">Message Upon Departure</string>
+    <string name="message_task_location">Trigger Message at Location?</string>
 </resources>

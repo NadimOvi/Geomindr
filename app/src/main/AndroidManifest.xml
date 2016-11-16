@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.harish.geomindr">
 
@@ -50,31 +51,32 @@
 
         <service
             android:name=".service.main.ReminderService"
-            android:enabled="true"/>
+            android:enabled="true" />
         <service
             android:name=".service.tbr.message.MessageConfirmService"
-            android:enabled="true"/>
+            android:enabled="true" />
         <service
             android:name=".service.tbr.message.MessageDeclineService"
-            android:enabled="true"/>
+            android:enabled="true" />
         <service
             android:name=".service.tbr.message.MessageSelectAgainService"
-            android:enabled="true"/>
+            android:enabled="true" />
         <service
             android:name=".service.tbr.alarm.DismissAlarmService"
-            android:enabled="true"/>
+            android:enabled="true" />
         <service
             android:name=".service.tbr.facebook.FacebookConfirmService"
-            android:enabled="true"/>
+            android:enabled="true" />
         <service
             android:name=".service.tbr.facebook.FacebookDeclineService"
-            android:enabled="true"/>
+            android:enabled="true" />
         <service
             android:name=".service.tbr.facebook.FacebookSelectAgainService"
-            android:enabled="true"/>
+            android:enabled="true" />
 
         <activity android:name=".activity.map.TaskMap" />
         <activity android:name=".activity.tbr.alarm.AlarmTask" />
+        <activity android:name=".activity.tbr.message.MessageTask"></activity>
     </application>
 
 </manifest>

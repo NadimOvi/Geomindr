@@ -1,9 +1,13 @@
 package com.example.harish.geomindr.fragment.main;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,10 +19,12 @@ import android.view.ViewGroup;
 import com.example.harish.geomindr.R;
 import com.example.harish.geomindr.activity.reminder.view.ReminderRecyclerAdapter;
 import com.example.harish.geomindr.activity.tbr.alarm.AlarmTask;
+import com.example.harish.geomindr.activity.tbr.message.MessageTask;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
 public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchListener, View.OnClickListener{
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 1;
     RecyclerView taskReminderList;
     ReminderRecyclerAdapter adapter;
 
@@ -26,7 +32,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
+        final View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         // Setting the FloatingActionMenu and FloatingActionButtons.
         final FloatingActionMenu addReminderFAM = (FloatingActionMenu)
@@ -114,7 +120,20 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
         fabTBRMessage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // First, check for send SMS permission.
+                // Proceed only if user grants the permission.
+                int permissionCheck = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.SEND_SMS);
 
+                // If permission is not granted, prompt user for permission.
+                if(permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{Manifest.permission.SEND_SMS},
+                            MY_PERMISSIONS_REQUEST_SEND_SMS);
+                }
+                // Else, start the desired activity.
+                else {
+                    Intent intent = new Intent(getContext(), MessageTask.class);
+                    startActivity(intent);
+                }
             }
         });
 
@@ -148,5 +167,19 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
     @Override
     public void onClick(View v) {
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                // If the user has granted the permission, then proceed and open the desired activity
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Intent intent = new Intent(getContext(), MessageTask.class);
+                    startActivity(intent);
+                }
+            }
+            break;
+        }
     }
 }
