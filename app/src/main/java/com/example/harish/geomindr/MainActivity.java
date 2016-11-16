@@ -43,11 +43,15 @@ public class MainActivity extends AppCompatActivity
 
     // Request code for asking permission for accessing user's location.
     public static final int PERMISSION_LOCATION_REQUEST_CODE = 1;
+    // Is the dialog box shown already?
+    boolean alreadyDialogBoxShown;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        alreadyDialogBoxShown = false;
 
         // Check if the app has permission to access user's location.
         int permissionGPSCheck = ContextCompat.checkSelfPermission(MainActivity.this,
@@ -62,6 +66,7 @@ public class MainActivity extends AppCompatActivity
         }
         // Prompt user to enable GPS if it is not enabled.
         else if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            alreadyDialogBoxShown = true;
             showEnableGpsAlertDialogBox();
         }
 
@@ -331,7 +336,7 @@ public class MainActivity extends AppCompatActivity
         // If app has access to user's location but GPS is not enabled,
         // the show the appropriate alert to the user
         if(permissionGPSCheck == PackageManager.PERMISSION_GRANTED &&
-                !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !alreadyDialogBoxShown) {
             showEnableGpsAlertDialogBox();
         }
     }

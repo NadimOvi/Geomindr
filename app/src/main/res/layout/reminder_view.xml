@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rem_list_container_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -32,7 +33,11 @@
                     android:id="@+id/fab_icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    card_view:fab_showShadow="false" />
+                    fab:fab_colorNormal="@color/darkGray"
+                    fab:fab_colorPressed="@color/darkGray"
+                    fab:fab_colorRipple="@color/darkGray"
+                    fab:fab_size="mini"
+                    card_view:fab_showShadow="false"/>
 
                 <TextView
                     android:id="@+id/rem_title"

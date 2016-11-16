@@ -135,10 +135,6 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
 
             // Setting ActionButton attributes displayed on the CardView displaying reminder.
             mFABIcon = (FloatingActionButton) view.findViewById(R.id.fab_icon);
-            mFABIcon.setButtonSize(SIZE_MINI);
-            mFABIcon.setColorNormalResId(R.color.darkGray);
-            mFABIcon.setColorPressedResId(R.color.darkGray);
-            mFABIcon.setColorRippleResId(R.color.darkGray);
 
             // If it is the first reminder, then
             // give a top padding of 10dp and bottom padding of 5dp.
