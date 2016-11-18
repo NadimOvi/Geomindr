@@ -15,6 +15,6 @@ public class AlarmDismissNotificationReceiver extends BroadcastReceiver {
         // Dismiss the notification.
         NotificationManager notificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancel(2);
+        notificationManager.cancel(2222);
     }
 }

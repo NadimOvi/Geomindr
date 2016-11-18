@@ -17,26 +17,20 @@ import com.github.clans.fab.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.clans.fab.FloatingActionButton.SIZE_MINI;
-
 public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecyclerAdapter.ViewHolder> {
     // List containing all the reminder in the database.
-    public static List<Reminder> reminderList;
+    private static List<Reminder> reminderList;
     // Context from which the class 'ReminderRecyclerAdapter' is called.
     private Context context;
     private SparseBooleanArray selectedRecyclerViewItems;
     private Vibrator vibratorService;
-    // Total number of reminder in the database.
-    private int totalRemNum;
-    // Current reminder.
-    // It is used for providing custom padding to the reminders displayed on the app inside CardView.
-    private int currentRemNum;
 
 
     public ReminderRecyclerAdapter(Context context) {
         this.context = context;
         this.selectedRecyclerViewItems = new SparseBooleanArray();
 
+        // To vibrate when user long clicks on a reminder tile.
         vibratorService = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 
         reminderList = new ArrayList<>();
@@ -46,9 +40,6 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
 
         // Retrieving all records from the database.
         Cursor res = databaseHelper.getAllRecords();
-
-        totalRemNum = res.getCount();
-        currentRemNum = 1;
 
         // Iterating through the retrieved records.
         while(res.moveToNext()) {
@@ -137,43 +128,10 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
         ViewHolder(View view) {
             super(view);
 
-            // Setting ActionButton attributes displayed on the CardView displaying reminder.
             mFABIcon = (FloatingActionButton) view.findViewById(R.id.fab_icon);
-
-            // If it is the first reminder, then
-            // give a top padding of 10dp and bottom padding of 5dp.
-            if (currentRemNum == 1) {
-                float scale = view.getResources().getDisplayMetrics().density;
-                int paddingTop = (int) (10*scale + 0.5f);
-                int paddingBottom = (int) (5*scale + 0.5f);
-                view.setPadding(0, paddingTop, 0, paddingBottom);
-                title = (TextView) view.findViewById(R.id.rem_title);
-                time = (TextView) view.findViewById(R.id.rem_time);
-                description = (TextView) view.findViewById(R.id.rem_description);
-                currentRemNum++;
-            }
-            // If it is the last reminder, then
-            // give a top padding of 5dp and bottom padding of 10dp.
-            else if (currentRemNum == totalRemNum) {
-                float scale = view.getResources().getDisplayMetrics().density;
-                int paddingTop = (int) (5*scale + 0.5f);
-                int paddingBottom = (int) (10*scale + 0.5f);
-                view.setPadding(0, paddingTop, 0, paddingBottom);
-                title = (TextView) view.findViewById(R.id.rem_title);
-                time = (TextView) view.findViewById(R.id.rem_time);
-                description = (TextView) view.findViewById(R.id.rem_description);
-            }
-            // Else, give a top and bottom padding of 5dp.
-            else {
-                float scale = view.getResources().getDisplayMetrics().density;
-                int paddingTop = (int) (5*scale + 0.5f);
-                int paddingBottom = (int) (5*scale + 0.5f);
-                view.setPadding(0, paddingTop, 0, paddingBottom);
-                title = (TextView) view.findViewById(R.id.rem_title);
-                time = (TextView) view.findViewById(R.id.rem_time);
-                description = (TextView) view.findViewById(R.id.rem_description);
-                currentRemNum++;
-            }
+            title = (TextView) view.findViewById(R.id.rem_title);
+            time = (TextView) view.findViewById(R.id.rem_time);
+            description = (TextView) view.findViewById(R.id.rem_description);
         }
     }
 }
