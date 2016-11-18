@@ -18,8 +18,10 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
+import android.widget.Toast;
 
 import com.example.harish.geomindr.R;
+import com.example.harish.geomindr.broadcast.NotificationReceiver;
 import com.example.harish.geomindr.database.DatabaseHelper;
 import com.example.harish.geomindr.service.tbr.alarm.DismissAlarmService;
 import com.example.harish.geomindr.service.tbr.facebook.FacebookConfirmService;
@@ -61,12 +63,11 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
     @Override
     public void onCreate() {
         super.onCreate();
-        // instantiating the object of DatabaseHelper class
-        databaseHelper = DatabaseHelper.getInstance(this);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Toast.makeText(getApplicationContext(), "SR", Toast.LENGTH_SHORT).show();
         // build the instance of GoogleApiClient
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -102,128 +103,138 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
     // Right now i am assuming that user will not explicitly revoke location permission manually from settings
     @SuppressWarnings({"MissingPermission"})
     public void onConnected(Bundle bundle) {
-        // get device's last known location using google's FusedLocation API
+        // Get device's last known location using google's FusedLocation API.
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
 
         if (lastLocation != null) {
-            // get the device's current location's latitude
-            // only for debugging purpose
+            // Get the device's current location's latitude.
+            // Only for debugging purpose
             curLatitude = lastLocation.getLatitude();
-            // get the device's current location's longitude
-            // only for debugging purpose
+            // Get the device's current location's longitude.
+            // Only for debugging purpose.
             curLongitude = lastLocation.getLongitude();
 
             System.out.println(String.valueOf(curLatitude) + " : " + String.valueOf(curLongitude));
-            //Toast.makeText(this, String.valueOf(curLatitude) + " : " + String.valueOf(curLongitude), Toast.LENGTH_SHORT).show();
 
-            /*
-             Access reminder objects from database and check if some reminder needs to be triggered
-             */
+            // Access reminder objects from database and check if a reminder needs to be triggered.
 
-            // retrieving all records from the database
+            // Getting an instance of DatabaseHelper class.
+            databaseHelper = DatabaseHelper.getInstance(ReminderService.this);
+            // Retrieving all records from the database.
             Cursor res = databaseHelper.getAllRecords();
 
-            // check if there is something in the database
+            // Check if there is something in the database
             if (res.getCount() > 0) {
-                // iterating through the retrieved records
+                // Iterating through the retrieved records.
                 while (res.moveToNext()) {
-                    // if it is a location based facebook reminder, then task_id equals 1
+                    // If it is a location based facebook reminder, then task_id equals 1.
                     if (res.getInt(1) == 1) {
-                        // create a Location object for destination location
+                        // Create a Location object for destination location
                         Location destLocation = new Location("dest_location");
-                        destLocation.setLatitude(res.getDouble(8));
-                        destLocation.setLongitude(res.getDouble(9));
+                        destLocation.setLatitude(res.getDouble(9));
+                        destLocation.setLongitude(res.getDouble(10));
 
-                        // calculate the distance between device's current location and destination location
+                        // Calculate the distance between device's current location and destination location.
                         double distance = lastLocation.distanceTo(destLocation);
-                        //Toast.makeText(this, String.valueOf(distance), Toast.LENGTH_SHORT).show();
 
-                        // if the distance is less than a threshold value, then pop out the notification
-                        if (distance < 400.0 && res.getInt(10) == 0) {
+                        // If the distance is less than radius, then pop out the notification.
+                        if (distance < res.getInt(11) && res.getInt(12) == 0) {
+                            // Change the reminder status to 1 so that it does not get triggered again.
                             databaseHelper.updateStatus(res.getInt(0), 1);
-                            sendFacebookNotification(res.getString(5), res.getString(7),
+                            sendFacebookNotification(res.getString(6), res.getString(8),
                                     String.valueOf(curLatitude), String.valueOf(curLongitude));
-                        } else if (distance > 600.0 && res.getInt(10) == 1) {
+                        }
+                        // If the reminder has already been triggered and user has
+                        // left the location, then change the status back to 0 again.
+                        else if (res.getInt(12) == 1 && distance > 2.5 * (res.getInt(11))) {
+                            // Change the reminder status to 0 so that it can be triggered again.
                             databaseHelper.updateStatus(res.getInt(0), 0);
-                            stopSelf();
-                        } else {
-                            stopSelf();
                         }
                     }
-                    // if it is a location based message reminder and user has arrived at the destination location, then task_id equals 3
-                    else if (res.getInt(1) == 3 && res.getInt(10) == 0) {
-                        // create a Location object for destination location
+                    // If it is a location based message reminder (arrival type), then task_id equals 3.
+                    // Also check the status of the reminder. If status is 0 then it means that
+                    // app has not sent the arrival message. If status is 1 then it means that app has already
+                    // sent the arrival message. The status will change from 1 to 0 when app sends departure
+                    // message to the user.
+                    else if (res.getInt(1) == 3 && res.getInt(12) == 0) {
+                        // Create a Location object for destination location.
                         Location destLocation = new Location("dest_location");
-                        destLocation.setLatitude(res.getDouble(8));
-                        destLocation.setLongitude(res.getDouble(9));
+                        destLocation.setLatitude(res.getDouble(9));
+                        destLocation.setLongitude(res.getDouble(10));
 
-                        // calculate the distance between device's current location and destination location
+                        // Calculate the distance between device's current location and destination location.
                         double distance = lastLocation.distanceTo(destLocation);
                         //Toast.makeText(this, String.valueOf(distance), Toast.LENGTH_SHORT).show();
 
-                        // if the distance is less than a threshold value and reminder status is 0, then pop out the notification
-                        if (distance < 400.0) {
-                            databaseHelper.updateTaskId(res.getInt(0), 5);
+                        // If the distance is less than radius, then pop out the notification.
+                        if (distance < res.getInt(11)) {
+                            // Update the status of reminder to 1.
                             databaseHelper.updateStatus(res.getInt(0), 1);
-                            sendMessageNotification(3, res.getString(3), res.getString(4), res.getString(5), res.getString(7));
-                        } else {
-                            stopSelf();
+                            // Update the status of departure message task reminder to 1.
+                            databaseHelper.updateStatus(res.getInt(0)+1, 1);
+                            // Send appropriate notification to the user.
+                            sendMessageNotification(3, res.getString(4), res.getString(5),
+                                    res.getString(6), res.getString(8));
                         }
                     }
-                    // if it is a location based message reminder and user has departed from the destination location, then task_id equals 5
-                    else if (res.getInt(1) == 5) {
-                        // create a Location object for destination location
+                    // If it is a location based message reminder (departure type), then task_id equals 5.
+                    else if (res.getInt(1) == 5 && res.getInt(12) == 1) {
+                        // Create a Location object for destination location.
                         Location destLocation = new Location("dest_location");
-                        destLocation.setLatitude(res.getDouble(8));
-                        destLocation.setLongitude(res.getDouble(9));
+                        destLocation.setLatitude(res.getDouble(9));
+                        destLocation.setLongitude(res.getDouble(10));
 
-                        // calculate the distance between device's current location and destination location
+                        // Calculate the distance between device's current location and destination location.
                         double distance = lastLocation.distanceTo(destLocation);
                         //Toast.makeText(this, String.valueOf(distance), Toast.LENGTH_SHORT).show();
 
-                        // if the distance is more than a threshold value, then pop out the notification
-                        if (distance > 600.0) {
-                            databaseHelper.updateTaskId(res.getInt(0), 3);
+                        // If the distance is more than radius, then pop out the notification.
+                        if (distance > res.getInt(11)) {
+                            // Update the status of reminder to 0.
                             databaseHelper.updateStatus(res.getInt(0), 0);
-                            sendMessageNotification(5, res.getString(3), res.getString(4), res.getString(6), res.getString(7));
-                        } else {
-                            stopSelf();
+                            // Update the status of arrival message task reminder to 0.
+                            databaseHelper.updateStatus(res.getInt(0)-1, 0);
+                            // Send appropriate notification to the user.
+                            sendMessageNotification(5, res.getString(4), res.getString(5),
+                                    res.getString(7), res.getString(8));
                         }
                     }
-                    // if it is a location based alarm reminder, then task_id equals 2
+                    // If it is a location based alarm reminder, then task_id equals 2.
                     else if (res.getInt(1) == 2) {
-                        // create a Location object for destination location
+                        // Create a Location object for destination location.
                         Location destLocation = new Location("dest_location");
-                        destLocation.setLatitude(res.getDouble(8));
-                        destLocation.setLongitude(res.getDouble(9));
+                        destLocation.setLatitude(res.getDouble(9));
+                        destLocation.setLongitude(res.getDouble(10));
 
-                        // calculate the distance between device's current location and destination location
+                        // Calculate the distance between device's current location and destination location
                         double distance = lastLocation.distanceTo(destLocation);
-                        //Toast.makeText(this, String.valueOf(distance), Toast.LENGTH_SHORT).show();
+                        //System.out.println(distance);
 
-                        // if the distance is less than a threshold value, then pop out the notification
-                        if (distance < 400.0 && res.getInt(10) == 0) {
+                        // If the distance is less than radius and reminder has not yet been triggered,
+                        // then pop out the notification.
+                        if (distance < res.getInt(11) && res.getInt(12) == 0)
+                        {
+                            // Update the status to 1.
                             databaseHelper.updateStatus(res.getInt(0), 1);
-                            sendAlarmNotification(res.getString(5), res.getString(7));
-                        } else if (distance > 600.0 && res.getInt(10) == 1) {
-                            databaseHelper.updateStatus(res.getInt(0), 0);
-                            stopSelf();
-                        } else {
-                            stopSelf();
+                            // Send appropriate notification to the user.
+                            sendAlarmNotification(res.getString(3), res.getString(6), res.getString(8));
                         }
-                    } else {
-                        stopSelf();
+                        // If the reminder has already been triggered and user has
+                        // left the location, then change the status back to 0 again.
+                        else if (res.getInt(12) == 1 && distance > 2.5 * (res.getInt(11))) {
+                            // Update the status of reminder back to 0.
+                            databaseHelper.updateStatus(res.getInt(0), 0);
+                        }
                     }
                 }
             }
-            else {
-                stopSelf();
-            }
+
+            // Close the cursor.
+            res.close();
         }
-        else {
-            // stop the current service and start again if the lastLocation is null
-            stopSelf();
-        }
+
+        // Stop the current service and start again if the lastLocation is null.
+        stopSelf();
     }
 
     @Override
@@ -236,8 +247,8 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
 
     }
 
+    // Send message task reminder notification to the user.
     public void sendMessageNotification(int taskId, String name, String number, String msg, String locationName) {
-        // send notification to the user
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         Intent confirmIntent = new Intent(ReminderService.this, MessageConfirmService.class);
@@ -246,71 +257,72 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         Intent declineIntent = new Intent(ReminderService.this, MessageDeclineService.class);
         Intent selectIntent = new Intent(ReminderService.this, MessageSelectAgainService.class);
 
-        // if user selects yes
+        // If user selects yes.
         PendingIntent confirmPendingIntent = PendingIntent.getService
                 (ReminderService.this, 0, confirmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // if user selects no
+        // If user selects no.
         PendingIntent declinePendingIntent = PendingIntent.getService
                 (ReminderService.this, 0, declineIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // if user clicks on the notification
+        // If user clicks on the notification.
         PendingIntent selectPendingIntent = PendingIntent.getService
                 (ReminderService.this, 0, selectIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(ReminderService.this)
-                // setting the title of the notification
+                // Setting the title of the notification.
                 .setContentTitle("Message Reminder Alert").setSmallIcon(R.drawable.ic_textsms_white_24dp)
-                // vibrate the device twice when notification pops out
+                // Vibrate the device twice when notification pops out.
                 .setVibrate(new long[]{1000, 1000, 1000, 1000})
-                // sound the system's default ringtone when notification pops out
+                // Sound the system's default ringtone when notification pops out.
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
-                // restrict user from swiping out the notification
+                // Restrict user from swiping out the notification.
                 .setOngoing(true)
-                // add Yes action to the notification
+                // Add Yes action to the notification.
                 .addAction(R.drawable.ic_check_white_24dp, "Yes", confirmPendingIntent)
-                // add No action to the notification
+                // Add No action to the notification.
                 .addAction(R.drawable.ic_close_white_24dp, "No", declinePendingIntent);
 
+        // If it is an arrival message task reminder.
         if(taskId == 3) {
             if(name == null) {
-                // setting the content of the notification
+                // Setting the content of the notification.
                 notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
                         ("Looks like you have arrived at " + locationName + "."
                         + " Do you want to send message \"" + msg + "\" to " + number + "."));
             }
             else {
-                // setting the content of the notification
+                // Setting the content of the notification.
                 notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
                         ("Looks like you have arrived at " + locationName + "."
                         + " Do you want to send message \"" + msg + "\" to " + name + "."));
             }
         }
+        // If it is a departure message task reminder.
         else {
             if(name == null) {
-                // setting the content of the notification
+                // Setting the content of the notification.
                 notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
                         ("Looks like you are departing from " + locationName + "."
                         + " Do you want to send message \"" + msg + "\" to " + number + "."));
             }
             else {
-                // setting the content of the notification
+                // Setting the content of the notification.
                 notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
                         ("Looks like you are departing from " + locationName + "."
                         + " Do you want to send message \"" + msg + "\" to " + name + "."));
             }
         }
 
-        // set pending intent to the notification
+        // Set pending intent to the notification.
         notificationBuilder.setContentIntent(selectPendingIntent);
-        // finally, display the notification to the user
+        // Finally, display the notification to the user.
         notificationManager.notify(3, notificationBuilder.build());
-
-        // stop the current service
-        stopSelf();
     }
 
-    private void sendAlarmNotification(String msg, String locationName) {
+    // Send alarm task reminder to the user.
+    private void sendAlarmNotification(String title, String msg, String locationName) {
+        /*// We will force the device to sound the alarm even if the device is set to silent or vibrate mode.
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        //remember what the user's volume was set to before we change it.
+        // Remember what the user's volume was set to before we change it.
         userVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
 
         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
@@ -322,6 +334,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
             e.printStackTrace();
         }
 
+        // Check if the device is on silent or vibrate mode.
         if(audioManager.getRingerMode() == AudioManager.RINGER_MODE_SILENT
                 || audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE) {
             mediaPlayer = new MediaPlayer();
@@ -338,44 +351,45 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
                 e.printStackTrace();
             }
 
+            // Sound the alarm at device's maximum volume.
             audioManager.setStreamVolume(AudioManager.STREAM_ALARM, audioManager.getStreamMaxVolume
                     (AudioManager.STREAM_ALARM), AudioManager.FLAG_PLAY_SOUND);
-        }
+        }*/
 
-        // send notification to the user
-        NotificationManager notificationManager = (NotificationManager)
-                getSystemService(Context.NOTIFICATION_SERVICE);
+        // Send notification to the user.
+        Intent dismissIntent = new Intent(ReminderService.this, NotificationReceiver.class);
+        dismissIntent.putExtra("notificationId", 2);
 
-        Intent dismissIntent = new Intent(ReminderService.this, DismissAlarmService.class);
+        // If user dismisses the alarm.
+        PendingIntent dismissPendingIntent = PendingIntent.getBroadcast
+                (ReminderService.this, 0, dismissIntent, 0);
 
-        // if user dismisses the alarm
-        PendingIntent dismissPendingIntent = PendingIntent.getService
-                (ReminderService.this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(ReminderService.this)
-                // setting the title of the notification
-                .setContentTitle("Alarm").setSmallIcon(R.drawable.ic_alarm_white_24dp)
-                // setting the content of the notification
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext())
+                // Setting the title of the notification.
+                .setContentTitle(title).setSmallIcon(R.drawable.ic_alarm_white_24dp)
+                // Setting the content of the notification.
                 .setStyle(new NotificationCompat.BigTextStyle().bigText
-                        ("You have reached " + locationName + ". This is to remind you to " + msg))
-                // restrict user from swiping out the notification
+                        ("Looks like you have reached " + locationName + ". This is to remind you to " + msg))
+                // Restrict user from swiping out the notification.
                 .setOngoing(true)
-                // add Yes action to the notification
+                // Cancel on touch
+                .setAutoCancel(true)
+                // Add Yes action to the notification.
                 .addAction(R.drawable.ic_alarm_off_white_24dp, "Dismiss", dismissPendingIntent);
 
-        // set pending intent to the notification
-        notificationBuilder.setContentIntent(dismissPendingIntent);
-        // finally, display the notification to the user
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(ReminderService.this,  0, new Intent(), 0);
+        notificationBuilder.setContentIntent(resultPendingIntent);
+        // Finally, display the notification to the user.
+        NotificationManager notificationManager = (NotificationManager)
+                getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(2, notificationBuilder.build());
-        stopSelf();
     }
 
+    // Send facebook task reminder notification.
     public void sendFacebookNotification(String msg, String location, String latitude, String longitude) {
-        // send notification to the user
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         Intent confirmIntent = new Intent(ReminderService.this, FacebookConfirmService.class);
-        //Log.d("Inserted Message", msg);
         confirmIntent.putExtra("msg", msg);
         confirmIntent.putExtra("location", location);
         confirmIntent.putExtra("latitude", latitude);
@@ -383,38 +397,35 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         Intent declineIntent = new Intent(ReminderService.this, FacebookDeclineService.class);
         Intent selectIntent = new Intent(ReminderService.this, FacebookSelectAgainService.class);
 
-        // if user selects yes
+        // If user selects yes.
         PendingIntent confirmPendingIntent = PendingIntent.getService
                 (ReminderService.this, 0, confirmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // if user selects no
+        // If user selects no.
         PendingIntent declinePendingIntent = PendingIntent.getService
                 (ReminderService.this, 0, declineIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // if user clicks on the notification
+        // If user clicks on the notification.
         PendingIntent selectPendingIntent = PendingIntent.getService
                 (ReminderService.this, 0, selectIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(ReminderService.this)
-                // setting the title of the notification
+                // Setting the title of the notification.
                 .setContentTitle("Facebook Post Alert").setSmallIcon(R.drawable.ic_create_white_24dp)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText("Looks like you are at " + location + "."
                 + " Do you want to post \"" + msg + "\" to " + "your facebook wall."))
-                // vibrate the device twice when notification pops out
+                // Vibrate the device twice when notification pops out.
                 .setVibrate(new long[]{1000, 1000, 1000, 1000})
-                // sound the system's default ringtone when notification pops out
+                // Sound the system's default ringtone when notification pops out.
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
-                // restrict user from swiping out the notification
+                // Restrict user from swiping out the notification.
                 .setOngoing(true)
-                // add Yes action to the notification
+                // Add Yes action to the notification.
                 .addAction(R.drawable.ic_check_white_24dp, "Yes", confirmPendingIntent)
-                // add No action to the notification
+                // Add No action to the notification.
                 .addAction(R.drawable.ic_close_white_24dp, "No", declinePendingIntent);
 
-        // set pending intent to the notification
+        // Set pending intent to the notification.
         notificationBuilder.setContentIntent(selectPendingIntent);
-        // finally, display the notification to the user
+        // Finally, display the notification to the user.
         notificationManager.notify(1, notificationBuilder.build());
-
-        // stop the current service
-        stopSelf();
     }
 }

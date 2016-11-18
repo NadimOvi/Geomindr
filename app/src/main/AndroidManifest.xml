@@ -76,7 +76,8 @@
 
         <activity android:name=".activity.map.TaskMap" />
         <activity android:name=".activity.tbr.alarm.AlarmTask" />
-        <activity android:name=".activity.tbr.message.MessageTask"></activity>
+        <activity android:name=".activity.tbr.message.MessageTask"/>
+        <receiver android:name=".broadcast.NotificationReceiver"/>
     </application>
 
 </manifest>
