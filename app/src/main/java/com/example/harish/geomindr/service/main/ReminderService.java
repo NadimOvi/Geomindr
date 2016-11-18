@@ -19,13 +19,13 @@ import android.support.v4.app.NotificationCompat;
 
 import com.example.harish.geomindr.R;
 import com.example.harish.geomindr.broadcast.alarm.AlarmDismissNotificationReceiver;
+import com.example.harish.geomindr.broadcast.facebook.FacebookConfirmPostReceiver;
+import com.example.harish.geomindr.broadcast.facebook.FacebookDeclinePostReceiver;
+import com.example.harish.geomindr.broadcast.facebook.FacebookSelectAgainReceiver;
 import com.example.harish.geomindr.broadcast.message.MessageConfirmSendReceiver;
 import com.example.harish.geomindr.broadcast.message.MessageDeclineSendReceiver;
 import com.example.harish.geomindr.broadcast.message.MessageSelectAgainReceiver;
 import com.example.harish.geomindr.database.DatabaseHelper;
-import com.example.harish.geomindr.service.tbr.facebook.FacebookConfirmService;
-import com.example.harish.geomindr.service.tbr.facebook.FacebookDeclineService;
-import com.example.harish.geomindr.service.tbr.facebook.FacebookSelectAgainService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -240,31 +240,39 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
     public void sendFacebookNotification(String msg, String location, String latitude, String longitude) {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Intent confirmIntent = new Intent(ReminderService.this, FacebookConfirmService.class);
+        // Intent passed to the Broadcast Receiver if user selects 'Yes'.
+        Intent confirmIntent = new Intent(ReminderService.this, FacebookConfirmPostReceiver.class);
+        // Pass message to post on facebook wall.
         confirmIntent.putExtra("msg", msg);
+        // Pass location to post on facebook wall.
         confirmIntent.putExtra("location", location);
+        // Pass Latitude and longitude of the location.
         confirmIntent.putExtra("latitude", latitude);
         confirmIntent.putExtra("longitude", longitude);
-        Intent declineIntent = new Intent(ReminderService.this, FacebookDeclineService.class);
-        Intent selectIntent = new Intent(ReminderService.this, FacebookSelectAgainService.class);
+
+        // Intent passed to the Broadcast Receiver if user selects 'No'.
+        Intent declineIntent = new Intent(ReminderService.this, FacebookDeclinePostReceiver.class);
+
+        // Intent passed to the Broadcast Receiver if user does not select anything.
+        Intent selectIntent = new Intent(ReminderService.this, FacebookSelectAgainReceiver.class);
 
         // If user selects yes.
-        PendingIntent confirmPendingIntent = PendingIntent.getService
-                (ReminderService.this, 0, confirmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent confirmPendingIntent = PendingIntent.getBroadcast
+                (ReminderService.this, 0, confirmIntent, 0);
         // If user selects no.
-        PendingIntent declinePendingIntent = PendingIntent.getService
-                (ReminderService.this, 0, declineIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent declinePendingIntent = PendingIntent.getBroadcast
+                (ReminderService.this, 0, declineIntent, 0);
         // If user clicks on the notification.
-        PendingIntent selectPendingIntent = PendingIntent.getService
-                (ReminderService.this, 0, selectIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent selectPendingIntent = PendingIntent.getBroadcast
+                (ReminderService.this, 0, selectIntent, 0);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(ReminderService.this)
                 // Setting the title of the notification.
                 .setContentTitle("Facebook Post Alert").setSmallIcon(R.drawable.ic_create_white_24dp)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText("Looks like you are at " + location + "."
-                        + " Do you want to post \"" + msg + "\" to " + "your facebook wall."))
+                        + " Do you want to post \"" + msg + "\" to " + "your Facebook wall."))
                 // Vibrate the device twice when notification pops out.
-                .setVibrate(new long[]{1000, 1000, 1000, 1000})
+                .setDefaults(Notification.DEFAULT_VIBRATE)
                 // Sound the system's default ringtone when notification pops out.
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                 // Restrict user from swiping out the notification.
@@ -371,7 +379,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
                 // Setting the title of the notification.
                 .setContentTitle("Message Reminder Alert").setSmallIcon(R.drawable.ic_textsms_white_24dp)
                 // Vibrate the device twice when notification pops out.
-                .setVibrate(new long[]{1000, 1000, 0, 0, 1000, 1000})
+                .setDefaults(Notification.DEFAULT_VIBRATE)
                 // Sound the system's default ringtone when notification pops out.
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                 // Restrict user from swiping out the notification.

@@ -1,11 +1,10 @@
-package com.example.harish.geomindr.service.tbr.facebook;
+package com.example.harish.geomindr.broadcast.facebook;
 
 import android.app.NotificationManager;
-import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -15,22 +14,21 @@ import com.facebook.HttpMethod;
 
 import org.json.JSONException;
 
-// Service that gets called when user selects YES
-// on the facebook task notification.
-public class FacebookConfirmService extends Service {
+public class FacebookConfirmPostReceiver extends BroadcastReceiver {
     String msg;
     String latitude;
     String longitude;
+    Context context;
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public void onReceive(Context context, Intent intent) {
         msg = intent.getStringExtra("msg");
         latitude = intent.getStringExtra("latitude");
         longitude = intent.getStringExtra("longitude");
+        this.context = context;
 
         // Post to facebook.
         doPost();
-        return START_STICKY;
     }
 
     public void doPost() {
@@ -86,11 +84,11 @@ public class FacebookConfirmService extends Service {
                                 HttpMethod.POST,
                                 new GraphRequest.Callback() {
                                     public void onCompleted(GraphResponse response) {
-                                        Toast.makeText(FacebookConfirmService.this, "Posted",
+                                        Toast.makeText(context, "Posted.",
                                                 Toast.LENGTH_SHORT).show();
                                         NotificationManager notificationManager = (NotificationManager)
-                                                getSystemService(Context.NOTIFICATION_SERVICE);
-                                        notificationManager.cancel(1);
+                                                context.getSystemService(Context.NOTIFICATION_SERVICE);
+                                        notificationManager.cancel(1111);
                                     }
                                 }
                         ).executeAsync();
@@ -108,10 +106,5 @@ public class FacebookConfirmService extends Service {
         parameters.putString("distance", "500");
         request.setParameters(parameters);
         request.executeAsync();
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
     }
 }

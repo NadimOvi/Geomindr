@@ -1,8 +1,5 @@
 package com.example.harish.geomindr.activity.reminder.view;
 
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-
 // Class representing the reminder created by the user.
 class Reminder {
     // Unique ID for every reminder created by the user.
@@ -63,6 +60,9 @@ class Reminder {
                 title += this.number;
             }
         }
+        else if (this.taskId == 1) {
+            title = "Post to Facebook";
+        }
 
         return title;
     }
@@ -102,7 +102,7 @@ class Reminder {
         return description;
     }
 
-    public int getTaskId() {
+    int getTaskId() {
         return this.taskId;
     }
 }

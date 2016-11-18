@@ -31,7 +31,7 @@
 
         <provider
             android:name="com.facebook.FacebookContentProvider"
-            android:authorities="com.facebook.app.FacebookContentProvider1820136288233683"
+            android:authorities="com.facebook.app.FacebookContentProvider205379066538184"
             android:exported="true" />
 
         <activity
@@ -52,24 +52,6 @@
         <service
             android:name=".service.main.ReminderService"
             android:enabled="true" />
-        <service
-            android:name=".service.tbr.message.MessageConfirmService"
-            android:enabled="true" />
-        <service
-            android:name=".service.tbr.message.MessageDeclineService"
-            android:enabled="true" />
-        <service
-            android:name=".service.tbr.message.MessageSelectAgainService"
-            android:enabled="true" />
-        <service
-            android:name=".service.tbr.facebook.FacebookConfirmService"
-            android:enabled="true" />
-        <service
-            android:name=".service.tbr.facebook.FacebookDeclineService"
-            android:enabled="true" />
-        <service
-            android:name=".service.tbr.facebook.FacebookSelectAgainService"
-            android:enabled="true" />
 
         <activity android:name=".activity.map.TaskMap" />
         <activity android:name=".activity.tbr.alarm.AlarmTask" />
@@ -77,21 +59,26 @@
 
         <receiver android:name=".broadcast.alarm.AlarmDismissNotificationReceiver" />
         <receiver
-            android:name=".broadcast.message.SendConfirmReceiver.java"
-            android:enabled="true"
-            android:exported="true" />
-        <receiver
             android:name=".broadcast.message.MessageConfirmSendReceiver"
-            android:enabled="true"
-            android:exported="true" />
+            android:enabled="true" />
         <receiver
             android:name=".broadcast.message.MessageDeclineSendReceiver"
-            android:enabled="true"
-            android:exported="true" />
+            android:enabled="true" />
         <receiver
             android:name=".broadcast.message.MessageSelectAgainReceiver"
-            android:enabled="true"
-            android:exported="true"></receiver>
+            android:enabled="true" />
+
+        <activity android:name=".activity.tbr.facebook.FacebookTask" />
+
+        <receiver
+            android:name=".broadcast.facebook.FacebookConfirmPostReceiver"
+            android:enabled="true" />
+        <receiver
+            android:name=".broadcast.facebook.FacebookDeclinePostReceiver"
+            android:enabled="true" />
+        <receiver
+            android:name=".broadcast.facebook.FacebookSelectAgainReceiver"
+            android:enabled="true"/>
     </application>
 
 </manifest>

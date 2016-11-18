@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import com.example.harish.geomindr.R;
 import com.example.harish.geomindr.activity.reminder.view.ReminderRecyclerAdapter;
 import com.example.harish.geomindr.activity.tbr.alarm.AlarmTask;
+import com.example.harish.geomindr.activity.tbr.facebook.FacebookTask;
 import com.example.harish.geomindr.activity.tbr.message.MessageTask;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
@@ -103,7 +104,8 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
         fabTBRFacebook.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(getContext(), FacebookTask.class);
+                startActivity(intent);
             }
         });
 

@@ -1,69 +1,15 @@
 package com.example.harish.geomindr.fragment.tbr;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.graphics.Color;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.GestureDetectorCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ActionMode;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.harish.geomindr.R;
-import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
-import com.facebook.appevents.AppEventsLogger;
-import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static android.app.Activity.RESULT_OK;
-import static android.content.Context.ALARM_SERVICE;
-import static android.widget.Toast.makeText;
-import static com.facebook.FacebookSdk.getApplicationContext;
 
 public class TaskBasedReminderFragment extends Fragment implements RecyclerView.OnItemTouchListener, View.OnClickListener {
     @Override
@@ -231,7 +177,7 @@ public class TaskBasedReminderFragment extends Fragment implements RecyclerView.
         // if the access token is not present, then it means that user has not given our app
         // required permissions to post status update on its facebook wall
         if (AccessToken.getCurrentAccessToken() == null || AccessToken.getCurrentAccessToken().isExpired()) {
-            fb_popup_view = layoutInflater.inflate(R.layout.popup_fb_login, null);
+            fb_popup_view = layoutInflater.inflate(R.layout.activity_facebook_login, null);
 
             // creating the callback manager
             callbackManager = CallbackManager.Factory.create();
