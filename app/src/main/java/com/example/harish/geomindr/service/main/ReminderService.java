@@ -1,6 +1,7 @@
 package com.example.harish.geomindr.service.main;
 
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -8,9 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,23 +16,19 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
-import android.widget.Toast;
 
 import com.example.harish.geomindr.R;
-import com.example.harish.geomindr.broadcast.NotificationReceiver;
+import com.example.harish.geomindr.broadcast.alarm.AlarmDismissNotificationReceiver;
+import com.example.harish.geomindr.broadcast.message.MessageConfirmSendReceiver;
+import com.example.harish.geomindr.broadcast.message.MessageDeclineSendReceiver;
+import com.example.harish.geomindr.broadcast.message.MessageSelectAgainReceiver;
 import com.example.harish.geomindr.database.DatabaseHelper;
-import com.example.harish.geomindr.service.tbr.alarm.DismissAlarmService;
 import com.example.harish.geomindr.service.tbr.facebook.FacebookConfirmService;
 import com.example.harish.geomindr.service.tbr.facebook.FacebookDeclineService;
 import com.example.harish.geomindr.service.tbr.facebook.FacebookSelectAgainService;
-import com.example.harish.geomindr.service.tbr.message.MessageConfirmService;
-import com.example.harish.geomindr.service.tbr.message.MessageDeclineService;
-import com.example.harish.geomindr.service.tbr.message.MessageSelectAgainService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-
-import java.io.IOException;
 
 public class ReminderService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
@@ -46,10 +40,6 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
     // true = stop the service
     // false = continue executing the service
     public static boolean stopService;
-    public static AudioManager audioManager;
-    public static MediaPlayer mediaPlayer;
-    public static Ringtone ringtone;
-    public static int userVolume;
     // instance of GoogleApiClient
     // used to access google's FusedLocationApi (bette alternative of android's LocationListener)
     GoogleApiClient googleApiClient;
@@ -67,7 +57,6 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(getApplicationContext(), "SR", Toast.LENGTH_SHORT).show();
         // build the instance of GoogleApiClient
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -247,144 +236,6 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
 
     }
 
-    // Send message task reminder notification to the user.
-    public void sendMessageNotification(int taskId, String name, String number, String msg, String locationName) {
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        Intent confirmIntent = new Intent(ReminderService.this, MessageConfirmService.class);
-        confirmIntent.putExtra("number", number);
-        confirmIntent.putExtra("msg", msg);
-        Intent declineIntent = new Intent(ReminderService.this, MessageDeclineService.class);
-        Intent selectIntent = new Intent(ReminderService.this, MessageSelectAgainService.class);
-
-        // If user selects yes.
-        PendingIntent confirmPendingIntent = PendingIntent.getService
-                (ReminderService.this, 0, confirmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // If user selects no.
-        PendingIntent declinePendingIntent = PendingIntent.getService
-                (ReminderService.this, 0, declineIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // If user clicks on the notification.
-        PendingIntent selectPendingIntent = PendingIntent.getService
-                (ReminderService.this, 0, selectIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(ReminderService.this)
-                // Setting the title of the notification.
-                .setContentTitle("Message Reminder Alert").setSmallIcon(R.drawable.ic_textsms_white_24dp)
-                // Vibrate the device twice when notification pops out.
-                .setVibrate(new long[]{1000, 1000, 1000, 1000})
-                // Sound the system's default ringtone when notification pops out.
-                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
-                // Restrict user from swiping out the notification.
-                .setOngoing(true)
-                // Add Yes action to the notification.
-                .addAction(R.drawable.ic_check_white_24dp, "Yes", confirmPendingIntent)
-                // Add No action to the notification.
-                .addAction(R.drawable.ic_close_white_24dp, "No", declinePendingIntent);
-
-        // If it is an arrival message task reminder.
-        if(taskId == 3) {
-            if(name == null) {
-                // Setting the content of the notification.
-                notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
-                        ("Looks like you have arrived at " + locationName + "."
-                        + " Do you want to send message \"" + msg + "\" to " + number + "."));
-            }
-            else {
-                // Setting the content of the notification.
-                notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
-                        ("Looks like you have arrived at " + locationName + "."
-                        + " Do you want to send message \"" + msg + "\" to " + name + "."));
-            }
-        }
-        // If it is a departure message task reminder.
-        else {
-            if(name == null) {
-                // Setting the content of the notification.
-                notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
-                        ("Looks like you are departing from " + locationName + "."
-                        + " Do you want to send message \"" + msg + "\" to " + number + "."));
-            }
-            else {
-                // Setting the content of the notification.
-                notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
-                        ("Looks like you are departing from " + locationName + "."
-                        + " Do you want to send message \"" + msg + "\" to " + name + "."));
-            }
-        }
-
-        // Set pending intent to the notification.
-        notificationBuilder.setContentIntent(selectPendingIntent);
-        // Finally, display the notification to the user.
-        notificationManager.notify(3, notificationBuilder.build());
-    }
-
-    // Send alarm task reminder to the user.
-    private void sendAlarmNotification(String title, String msg, String locationName) {
-        /*// We will force the device to sound the alarm even if the device is set to silent or vibrate mode.
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        // Remember what the user's volume was set to before we change it.
-        userVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
-
-        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-
-        try {
-            ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
-            ringtone.play();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Check if the device is on silent or vibrate mode.
-        if(audioManager.getRingerMode() == AudioManager.RINGER_MODE_SILENT
-                || audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE) {
-            mediaPlayer = new MediaPlayer();
-
-            try {
-                if (!mediaPlayer.isPlaying()) {
-                    mediaPlayer.setDataSource(this, notification);
-                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-                    mediaPlayer.setLooping(true);
-                    mediaPlayer.prepare();
-                    mediaPlayer.start();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            // Sound the alarm at device's maximum volume.
-            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, audioManager.getStreamMaxVolume
-                    (AudioManager.STREAM_ALARM), AudioManager.FLAG_PLAY_SOUND);
-        }*/
-
-        // Send notification to the user.
-        Intent dismissIntent = new Intent(ReminderService.this, NotificationReceiver.class);
-        dismissIntent.putExtra("notificationId", 2);
-
-        // If user dismisses the alarm.
-        PendingIntent dismissPendingIntent = PendingIntent.getBroadcast
-                (ReminderService.this, 0, dismissIntent, 0);
-
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext())
-                // Setting the title of the notification.
-                .setContentTitle(title).setSmallIcon(R.drawable.ic_alarm_white_24dp)
-                // Setting the content of the notification.
-                .setStyle(new NotificationCompat.BigTextStyle().bigText
-                        ("Looks like you have reached " + locationName + ". This is to remind you to " + msg))
-                // Restrict user from swiping out the notification.
-                .setOngoing(true)
-                // Cancel on touch
-                .setAutoCancel(true)
-                // Add Yes action to the notification.
-                .addAction(R.drawable.ic_alarm_off_white_24dp, "Dismiss", dismissPendingIntent);
-
-        PendingIntent resultPendingIntent = PendingIntent.getActivity(ReminderService.this,  0, new Intent(), 0);
-        notificationBuilder.setContentIntent(resultPendingIntent);
-        // Finally, display the notification to the user.
-        NotificationManager notificationManager = (NotificationManager)
-                getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(2, notificationBuilder.build());
-    }
-
     // Send facebook task reminder notification.
     public void sendFacebookNotification(String msg, String location, String latitude, String longitude) {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -411,7 +262,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
                 // Setting the title of the notification.
                 .setContentTitle("Facebook Post Alert").setSmallIcon(R.drawable.ic_create_white_24dp)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText("Looks like you are at " + location + "."
-                + " Do you want to post \"" + msg + "\" to " + "your facebook wall."))
+                        + " Do you want to post \"" + msg + "\" to " + "your facebook wall."))
                 // Vibrate the device twice when notification pops out.
                 .setVibrate(new long[]{1000, 1000, 1000, 1000})
                 // Sound the system's default ringtone when notification pops out.
@@ -426,6 +277,144 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         // Set pending intent to the notification.
         notificationBuilder.setContentIntent(selectPendingIntent);
         // Finally, display the notification to the user.
-        notificationManager.notify(1, notificationBuilder.build());
+        notificationManager.notify(1111, notificationBuilder.build());
+    }
+
+    // Send alarm task reminder to the user.
+    private void sendAlarmNotification(String title, String msg, String locationName) {
+        // Send notification to the user.
+        NotificationManager notificationManager = (NotificationManager)
+                getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // Define sound URI.
+        Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+
+        // If user has never set an alarm, then soundUri will be null.
+        if (soundUri == null) {
+            // soundUri is null, using backup.
+            soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+            // I can't see this ever being null (as always have a default notification)
+            // but just in case.
+            if(soundUri == null) {
+                // soundUri backup is null, using 2nd backup.
+                soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+            }
+        }
+
+        // This intent will be passed to Broadcast Receiver as a PendingIntent when user dismisses the alarm.
+        Intent dismissIntent = new Intent(ReminderService.this, AlarmDismissNotificationReceiver.class);
+
+        // If user dismisses the alarm.
+        PendingIntent dismissPendingIntent = PendingIntent.getBroadcast
+                (ReminderService.this, 0, dismissIntent, 0);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(ReminderService.this)
+                // Setting the title of the notification.
+                .setContentTitle(title).setSmallIcon(R.drawable.ic_alarm_white_24dp)
+                // Setting the content of the notification.
+                .setStyle(new NotificationCompat.BigTextStyle().bigText
+                        ("Looks like you have reached " + locationName + ". This is to remind you to " + msg))
+                // Restrict user from swiping out the notification.
+                .setOngoing(true)
+                // Cancel on touch.
+                .setAutoCancel(true)
+                // Set the sound played with the notification.
+                .setSound(soundUri)
+                // Set vibration pattern
+                .setVibrate(new long[] {1000, 1000, 0, 0, 1000, 1000})
+                // Add Yes action to the notification.
+                .addAction(R.drawable.ic_alarm_off_white_24dp, "Dismiss", dismissPendingIntent);
+
+        // Passing an empty Intent to PendingIntent because we don't want to open any activity when user
+        // clicks on the notification.
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(ReminderService.this,  0, new Intent(), 0);
+        // Setting the PendingIntent on notification.
+        notificationBuilder.setContentIntent(resultPendingIntent);
+
+        // Build Notification based on specifications defined in Notification.Builder.
+        Notification notification = notificationBuilder.build();
+        // Setting this flag so that notification sound continues to play till user responds to the notification.
+        notification.flags = Notification.FLAG_INSISTENT;
+        // Finally, display the notification to the user.
+        notificationManager.notify(2222, notification);
+    }
+
+    // Send message task reminder notification to the user.
+    public void sendMessageNotification(int taskId, String name, String number, String msg, String locationName) {
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // Intent passed to the Broadcast Receiver if user selects 'Yes'.
+        Intent confirmIntent = new Intent(ReminderService.this, MessageConfirmSendReceiver.class);
+        // Pass the recipient number.
+        confirmIntent.putExtra("number", number);
+        // Pass the message for the recipient.
+        confirmIntent.putExtra("msg", msg);
+
+        // Intent passed to the Broadcast Receiver if user selects 'No'.
+        Intent declineIntent = new Intent(ReminderService.this, MessageDeclineSendReceiver.class);
+
+        // Intent passed to the Broadcast Receiver if user does not select anything.
+        Intent selectIntent = new Intent(ReminderService.this, MessageSelectAgainReceiver.class);
+
+        // If user selects yes.
+        PendingIntent confirmPendingIntent = PendingIntent.getBroadcast
+                (ReminderService.this, 0, confirmIntent, 0);
+        // If user selects no.
+        PendingIntent declinePendingIntent = PendingIntent.getBroadcast
+                (ReminderService.this, 0, declineIntent, 0);
+        // If user clicks on the notification , i.e, selects nothing.
+        PendingIntent selectPendingIntent = PendingIntent.getBroadcast
+                (ReminderService.this, 0, selectIntent, 0);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(ReminderService.this)
+                // Setting the title of the notification.
+                .setContentTitle("Message Reminder Alert").setSmallIcon(R.drawable.ic_textsms_white_24dp)
+                // Vibrate the device twice when notification pops out.
+                .setVibrate(new long[]{1000, 1000, 0, 0, 1000, 1000})
+                // Sound the system's default ringtone when notification pops out.
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                // Restrict user from swiping out the notification.
+                .setOngoing(true)
+                // Add Yes action to the notification.
+                .addAction(R.drawable.ic_check_white_24dp, "Yes", confirmPendingIntent)
+                // Add No action to the notification.
+                .addAction(R.drawable.ic_close_white_24dp, "No", declinePendingIntent);
+
+        // If it is an arrival message task reminder.
+        if(taskId == 3) {
+            if(name == null) {
+                // Setting the content of the notification.
+                notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
+                        ("Looks like you have arrived at " + locationName + "."
+                                + " Do you want to send message \"" + msg + "\" to " + number + "."));
+            }
+            else {
+                // Setting the content of the notification.
+                notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
+                        ("Looks like you have arrived at " + locationName + "."
+                                + " Do you want to send message \"" + msg + "\" to " + name + "."));
+            }
+        }
+        // If it is a departure message task reminder.
+        else {
+            if(name == null) {
+                // Setting the content of the notification.
+                notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
+                        ("Looks like you are departing from " + locationName + "."
+                                + " Do you want to send message \"" + msg + "\" to " + number + "."));
+            }
+            else {
+                // Setting the content of the notification.
+                notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText
+                        ("Looks like you are departing from " + locationName + "."
+                                + " Do you want to send message \"" + msg + "\" to " + name + "."));
+            }
+        }
+
+        // Set pending intent to the notification.
+        notificationBuilder.setContentIntent(selectPendingIntent);
+        // Finally, display the notification to the user.
+        notificationManager.notify(3333, notificationBuilder.build());
     }
 }

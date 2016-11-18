@@ -62,9 +62,6 @@
             android:name=".service.tbr.message.MessageSelectAgainService"
             android:enabled="true" />
         <service
-            android:name=".service.tbr.alarm.DismissAlarmService"
-            android:enabled="true" />
-        <service
             android:name=".service.tbr.facebook.FacebookConfirmService"
             android:enabled="true" />
         <service
@@ -76,8 +73,25 @@
 
         <activity android:name=".activity.map.TaskMap" />
         <activity android:name=".activity.tbr.alarm.AlarmTask" />
-        <activity android:name=".activity.tbr.message.MessageTask"/>
-        <receiver android:name=".broadcast.NotificationReceiver"/>
+        <activity android:name=".activity.tbr.message.MessageTask" />
+
+        <receiver android:name=".broadcast.alarm.AlarmDismissNotificationReceiver" />
+        <receiver
+            android:name=".broadcast.message.SendConfirmReceiver.java"
+            android:enabled="true"
+            android:exported="true" />
+        <receiver
+            android:name=".broadcast.message.MessageConfirmSendReceiver"
+            android:enabled="true"
+            android:exported="true" />
+        <receiver
+            android:name=".broadcast.message.MessageDeclineSendReceiver"
+            android:enabled="true"
+            android:exported="true" />
+        <receiver
+            android:name=".broadcast.message.MessageSelectAgainReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
     </application>
 
 </manifest>
