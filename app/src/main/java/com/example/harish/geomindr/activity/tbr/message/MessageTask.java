@@ -224,7 +224,7 @@ public class MessageTask extends AppCompatActivity {
                     name = null;
                 }
 
-                isInserted = databaseHelper.insertRecord(sharedPreferences.getInt("counter", -1), 3, 1,
+                isInserted = databaseHelper.insertRecordTBR(sharedPreferences.getInt("counter", -1), 3, 1,
                         null, name, number, aMessage, null, locationName,
                         latitude, longitude, triggerRadius);
 
@@ -235,7 +235,7 @@ public class MessageTask extends AppCompatActivity {
                     editor.putInt("counter", sharedPreferences.getInt("counter", -1) + 1);
                     editor.apply();
 
-                    isInserted = databaseHelper.insertRecord(sharedPreferences.getInt("counter", -1), 5, 1,
+                    isInserted = databaseHelper.insertRecordTBR(sharedPreferences.getInt("counter", -1), 5, 1,
                             null, name, number, null, dMessage, locationName,
                             latitude, longitude, triggerRadius);
 

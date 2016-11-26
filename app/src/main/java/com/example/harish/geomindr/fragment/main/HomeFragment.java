@@ -1,33 +1,59 @@
 package com.example.harish.geomindr.fragment.main;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GestureDetectorCompat;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.harish.geomindr.R;
+import com.example.harish.geomindr.activity.ebr.EntityBasedReminderActivity;
+import com.example.harish.geomindr.activity.reminder.view.Reminder;
 import com.example.harish.geomindr.activity.reminder.view.ReminderRecyclerAdapter;
 import com.example.harish.geomindr.activity.tbr.alarm.AlarmTask;
 import com.example.harish.geomindr.activity.tbr.facebook.FacebookTask;
 import com.example.harish.geomindr.activity.tbr.message.MessageTask;
+import com.example.harish.geomindr.database.DatabaseHelper;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
+import java.util.List;
+
+import static android.widget.Toast.makeText;
+import static com.example.harish.geomindr.activity.reminder.view.ReminderRecyclerAdapter.reminderList;
+
 public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchListener, View.OnClickListener{
     private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 1;
+    Context mContext;
+    ActionBar mActionBar;
     RecyclerView taskReminderList;
-    ReminderRecyclerAdapter adapter;
+    ReminderRecyclerAdapter taskReminderListAdapter;
+
+    // Action Mode specific members
+    ActionMode taskReminderListActionMode;
+    ActionMode.Callback taskReminderListActionModeCallback;
+    GestureDetectorCompat taskReminderListGestureDetector;
 
     @Nullable
     @Override
@@ -46,8 +72,86 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
         final FloatingActionButton fabTBRAlarm = new FloatingActionButton(getContext());
         final FloatingActionButton fabTBRMessage = new FloatingActionButton(getContext());
 
+        mContext = getActivity().getApplicationContext();
+
+        // Get action bar
+        mActionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         // RecyclerViewObject.
         taskReminderList = (RecyclerView) view.findViewById(R.id.reminder_list);
+
+        // Action Mode Objects
+        taskReminderListGestureDetector = new GestureDetectorCompat(getContext(), new TaskReminderListOnGestureListener());
+        taskReminderListActionModeCallback =
+                        new ActionMode.Callback() {
+                            private int statusBarColor;
+
+                            @Override
+                            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                                MenuInflater inflater = mode.getMenuInflater();
+                                inflater.inflate(R.menu.action_mode_options_menu, menu);
+
+                                // hide FAM
+                                if (addReminderFAM.isOpened())
+                                    addReminderFAM.close(true);
+                                addReminderFAM.setVisibility(View.GONE);
+
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                    //hold current color of status bar
+                                    statusBarColor = getActivity().getWindow().getStatusBarColor();
+                                    //set your color
+                                    getActivity().getWindow()
+                                            .setStatusBarColor
+                                                    (ContextCompat
+                                                            .getColor
+                                                                    (mContext,
+                                                                        R.color.colorPrimaryDark));
+                                }
+
+                                return true;
+                            }
+
+                            @Override
+                            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                                List<Integer> selectedItemPositions
+                                        = taskReminderListAdapter.getSelectedItems();
+                                int currPos = -1;
+                                for (int i = selectedItemPositions.size() - 1; i >= 0; i--) {
+                                    currPos = selectedItemPositions.get(i);
+                                }
+
+                                switch (item.getItemId()) {
+                                    case R.id.option_edit:
+                                        makeText(getContext(), "Task reminder edited.", Toast.LENGTH_SHORT).show();
+
+                                        mode.finish();
+                                        return true;
+                                    case R.id.option_delete:
+                                        makeText(getContext(), "Task reminder Deleted.", Toast.LENGTH_SHORT).show();
+                                        Reminder tbr = reminderList.get(currPos);
+                                        DatabaseHelper databaseHelper = DatabaseHelper.getInstance(getContext());
+                                        databaseHelper.deleteTask(tbr.getReminderId());
+                                        reminderList.remove(currPos);
+                                        taskReminderListAdapter.notifyDataSetChanged();
+                                        mode.finish();
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            }
+
+                            @Override
+                            public void onDestroyActionMode(ActionMode mode) {
+                                taskReminderListActionMode = null;
+                                taskReminderListAdapter.clearSelections();
+
+                                addReminderFAM.setVisibility(View.VISIBLE);
+                            }
+                        };
 
         // Setting the 'Facebook Task' FloatingActionButton programmatically
         // because we will show it only if user clicks on 'Task Based Reminder' FloatingActionButton.
@@ -97,6 +201,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
 
         fabEBR.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                startActivity(new Intent(getContext(), EntityBasedReminderActivity.class));
             }
         });
 
@@ -140,35 +245,62 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
         });
 
         // Setting up the RecyclerView with reminders present in the database.
-        adapter = new ReminderRecyclerAdapter(getContext());
+        taskReminderListAdapter = new ReminderRecyclerAdapter(getContext());
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
         taskReminderList.setLayoutManager(mLayoutManager);
         taskReminderList.setItemAnimator(new DefaultItemAnimator());
-        taskReminderList.setAdapter(adapter);
+        taskReminderList.setAdapter(taskReminderListAdapter);
         taskReminderList.addOnItemTouchListener(this);
-        adapter.notifyDataSetChanged();
+        taskReminderListAdapter.notifyDataSetChanged();
 
         return view;
     }
 
     @Override
     public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+        taskReminderListGestureDetector.onTouchEvent(e);
         return false;
     }
 
     @Override
     public void onTouchEvent(RecyclerView rv, MotionEvent e) {
-
+        return;
     }
 
     @Override
     public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-
+        return;
     }
 
     @Override
     public void onClick(View v) {
+        if (v == null) {
+            int selectCount;
+            taskReminderListAdapter.clearSelections();
+            selectCount = taskReminderListAdapter.getSelectedItemCount();
+            if (selectCount == 0 && taskReminderListActionMode != null) {
+                taskReminderListActionMode.finish();
+                taskReminderListActionMode = null;
+            }
+            return;
+        }
 
+        switch (v.getId()) {
+            case R.id.rem_list_container_item:
+                int idx = taskReminderList.getChildAdapterPosition(v);
+                if (taskReminderListActionMode != null) {
+                    int selectCount;
+                    myToggleSelection(idx);
+                    selectCount = taskReminderListAdapter.getSelectedItemCount();
+                    if (selectCount == 0) {
+                        taskReminderListActionMode.finish();
+                        taskReminderListActionMode = null;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
@@ -182,6 +314,35 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
                 }
             }
             break;
+        }
+    }
+
+    private void myToggleSelection(int idx) {
+        taskReminderListAdapter.toggleSelection(idx);
+    }
+
+    private class TaskReminderListOnGestureListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            View view = taskReminderList.findChildViewUnder(e.getX(), e.getY());
+            onClick(view);
+            return super.onSingleTapConfirmed(e);
+        }
+
+        public void onLongPress(MotionEvent event) {
+            View view = taskReminderList.findChildViewUnder(event.getX(), event.getY());
+
+            if (taskReminderListActionMode != null) {
+                return;
+            }
+
+            taskReminderListActionMode = ((AppCompatActivity) getActivity())
+                    .startSupportActionMode(taskReminderListActionModeCallback);
+
+            int idx = taskReminderList.getChildAdapterPosition(view);
+            myToggleSelection(idx);
+
+            super.onLongPress(event);
         }
     }
 }

@@ -7,4 +7,6 @@
     <color name="selection_bg">#ffddee</color>
     <color name="gray">#e0e0e0</color>
     <color name="darkGray">#757575</color>
+    <color name="button_unclicked">#757575</color>
+    <color name="button_clicked">#FF5252</color>
 </resources>

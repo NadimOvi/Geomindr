@@ -18,7 +18,11 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 
 import com.example.harish.geomindr.R;
+import com.example.harish.geomindr.activity.ebr.GooglePlacesReadTask;
+import com.example.harish.geomindr.activity.ebr.PlaceMap;
+import com.example.harish.geomindr.activity.ebr.TimerNotification;
 import com.example.harish.geomindr.broadcast.alarm.AlarmDismissNotificationReceiver;
+import com.example.harish.geomindr.broadcast.ebr.Cancel;
 import com.example.harish.geomindr.broadcast.facebook.FacebookConfirmPostReceiver;
 import com.example.harish.geomindr.broadcast.facebook.FacebookDeclinePostReceiver;
 import com.example.harish.geomindr.broadcast.facebook.FacebookSelectAgainReceiver;
@@ -29,6 +33,9 @@ import com.example.harish.geomindr.database.DatabaseHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ReminderService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
@@ -49,6 +56,8 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
     double curLongitude;
     // creating an object of DatabaseHelper class
     DatabaseHelper databaseHelper;
+    private int PROXIMITY_RADIUS = 2000;
+    private String GOOGLE_API_KEY = "AIzaSyA68JFWLgTb_UzQQUUR_0ystLn6MFAvvR8";
 
     @Override
     public void onCreate() {
@@ -96,6 +105,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
 
         if (lastLocation != null) {
+            checkEBRReminder();
             // Get the device's current location's latitude.
             // Only for debugging purpose
             curLatitude = lastLocation.getLatitude();
@@ -110,7 +120,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
             // Getting an instance of DatabaseHelper class.
             databaseHelper = DatabaseHelper.getInstance(ReminderService.this);
             // Retrieving all records from the database.
-            Cursor res = databaseHelper.getAllRecords();
+            Cursor res = databaseHelper.getAllRecordsTBR();
 
             // Check if there is something in the database
             if (res.getCount() > 0) {
@@ -226,10 +236,67 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         stopSelf();
     }
 
+
+
     @Override
     public void onConnectionSuspended(int i) {
 
     }
+
+    private void checkEBRReminder() {
+        // Getting an instance of DatabaseHelper class.
+        databaseHelper = DatabaseHelper.getInstance(ReminderService.this);
+        // Retrieving all records from the database.
+        Cursor res = databaseHelper.getAllRecordsEBR();
+
+        // Check if there is something in the database
+        if (res.getCount() > 0) {
+            // Iterating through the retrieved records.
+            while (res.moveToNext()) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
+                String currentDateTime = dateFormat.format(new Date()); // Find current time
+                String indian_time[] = currentDateTime.split(":");
+                int currHour = Integer.parseInt(indian_time[0]);
+                if(currHour>12)
+                    currHour = currHour-12;
+                int currMin = Integer.parseInt(indian_time[1]);
+                String data_time[] = res.getString(1).split(":");
+                System.out.println(currentDateTime);
+                System.out.println(res.getString(1));
+                int dataHour = Integer.parseInt(data_time[0]);
+                int dataMin = Integer.parseInt(data_time[1]);
+
+
+                if(dataHour<currHour || (dataHour==currHour && dataMin<=currMin)) {
+                    // Requesting this url for finding nearest locations
+                    StringBuilder googlePlacesUrl = new StringBuilder
+                            ("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+                    googlePlacesUrl.append("location=" + lastLocation.getLatitude() +
+                            "," + lastLocation.getLongitude());
+                    googlePlacesUrl.append("&radius=" + PROXIMITY_RADIUS);
+                    googlePlacesUrl.append("&types=" + res.getString(0));
+                    googlePlacesUrl.append("&sensor=true");
+                    googlePlacesUrl.append("&key=" + GOOGLE_API_KEY);
+
+                    GooglePlacesReadTask googlePlacesReadTask = new GooglePlacesReadTask();
+                    Object[] toPass = new Object[4];
+                    toPass[0] = googlePlacesUrl.toString();
+                    toPass[1] = res.getString(0);
+                    toPass[2] = res.getString(2);
+                    toPass[3] = getApplicationContext();
+                    googlePlacesReadTask.execute(toPass);
+
+
+                    if (!res.getString(3).equals("0.0") && !res.getString(4).equals("0.0")) {
+                        //send notification to the user
+                        sendNotificationEBR(res.getString(0), res.getString(2), res.getString(3), res.getString(4));
+                    }
+                }
+            }
+        }
+    }
+
+
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
@@ -424,5 +491,102 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         notificationBuilder.setContentIntent(selectPendingIntent);
         // Finally, display the notification to the user.
         notificationManager.notify(3333, notificationBuilder.build());
+    }
+
+    public void sendNotificationEBR(String entity,String entityName,String entityLat,String entityLng)
+    {
+        String notiName;
+
+        Intent intent = new Intent(this, PlaceMap.class);
+        intent.putExtra("map",entity);
+        intent.putExtra("map1",lastLocation.getLatitude());
+        intent.putExtra("map2",lastLocation.getLongitude());
+        intent.putExtra("map3",entityLat);
+        intent.putExtra("map4",entityLng);
+        intent.putExtra("map5",entityName);
+
+        Intent intent1 = new Intent(this, Cancel.class);
+        intent1.putExtra("cancel",true);
+        intent1.putExtra("cancel1",entity);
+
+        Intent intent2 = new Intent(this, TimerNotification.class);
+        intent2.putExtra("later",true);
+        intent2.putExtra("later1",entity);
+
+        PendingIntent pIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent, 0);
+        PendingIntent pIntent1 = PendingIntent.getBroadcast(this, (int) System.currentTimeMillis(), intent1, 0);
+        PendingIntent pIntent2 = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent2, 0);
+
+        NotificationCompat.Action action = new NotificationCompat.Action.Builder
+                (R.drawable.ic_add_location_white_18dp, "Map", pIntent).build();
+        NotificationCompat.Action action2 = new NotificationCompat.Action.Builder
+                (R.drawable.ic_cancel_white_18dp, "Cancel", pIntent1).build();
+        NotificationCompat.Action action1 = new NotificationCompat.Action.Builder
+                (R.drawable.ic_watch_later_white_18dp, "Later", pIntent2).build();
+
+        if(entity.equals("atm")){
+            notiName = "ATM";
+        }
+        else if(entity.equals("food")){
+            notiName = "Restaurant";
+        }
+        else if(entity.equals("hospital")){
+            notiName = "Hospital";
+        }
+        else if(entity.equals("police")){
+            notiName = "Police";
+        }
+        else if(entity.equals("shopping_mall")){
+            notiName = "Shopping Mall";
+        }
+        else if(entity.equals("pharmacy")){
+            notiName = "Medical Store";
+        }
+        else if(entity.equals("gym")){
+            notiName = "Gym";
+        }
+        else if(entity.equals("bank")){
+            notiName = "Bank";
+        }
+        else if(entity.equals("post_office")){
+            notiName = "Post Office";
+        }
+        else if(entity.equals("library")){
+            notiName = "Library";
+        }
+        else if(entity.equals("bar")){
+            notiName = "Bar";
+        }
+        else if(entity.equals("movie_theater")){
+            notiName = "Movie Theater";
+        }
+        else if(entity.equals("book_store")){
+            notiName = "Book Store";
+        }
+        else if(entity.equals("local_government_office")){
+            notiName = "Government Office";
+        }
+        else{
+            notiName = "Petrol Pump";
+        }
+
+        // Build notification
+        Notification noti = new NotificationCompat.Builder(this)
+                .setContentTitle("You are near to " + notiName)
+                .setContentText("").setSmallIcon(R.drawable.ic_notifications_white_24dp)
+                .setContentIntent(pIntent)
+                .setVibrate(new long[]{1000, 1000})
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                .setAutoCancel(true)
+                .addAction(action)
+                .addAction(action1)
+                .addAction(action2)
+                .build();
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        // hide the notification after its selected
+        noti.flags |= Notification.FLAG_AUTO_CANCEL;
+
+        notificationManager.notify(4444, noti);
     }
 }

@@ -30,4 +30,22 @@
     <string name="message_task_location">Trigger Message at Location?</string>
     <string name="facebook_text">Log in with Facebook to allow the app to post to your Facebook wall.</string>
     <string name="facebook_task_msg">Message To Post On Facebook Wall</string>
+    <string name="atm">ATM</string>
+    <string name="food">Food</string>
+    <string name="random_location">Random Location</string>
+    <string name="particular_location">Particular Location</string>
+    <string name="cancel">Cancel</string>
+    <string name="hospital">Hospital</string>
+    <string name="police">Police</string>
+    <string name="mall">Mall</string>
+    <string name="medical">Medical</string>
+    <string name="gym">Gym</string>
+    <string name="bank">Bank</string>
+    <string name="postal">Postal</string>
+    <string name="bar">Bar</string>
+    <string name="library">Library</string>
+    <string name="movie">Movie</string>
+    <string name="books">Books</string>
+    <string name="gov_off">Gov. Off.</string>
+    <string name="petrol">Petrol</string>
 </resources>

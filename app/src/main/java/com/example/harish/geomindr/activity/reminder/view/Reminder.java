@@ -1,7 +1,7 @@
 package com.example.harish.geomindr.activity.reminder.view;
 
 // Class representing the reminder created by the user.
-class Reminder {
+public class Reminder {
     // Unique ID for every reminder created by the user.
     private int reminderId;
     // ID based on the task performed by the reminder.
@@ -77,6 +77,10 @@ class Reminder {
         location += "at " + this.locationName;
 
         return location;
+    }
+
+    public int getReminderId() {
+        return reminderId;
     }
 
     String getDescription() {

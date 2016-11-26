@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity
         // If the service is already running, it will not affect anything.
         DatabaseHelper databaseHelper = DatabaseHelper.getInstance(this);
         // Check if there are some reminders in the database.
-        Cursor cursor = databaseHelper.getAllRecords();
+        Cursor cursor = databaseHelper.getAllRecordsTBR();
 
         // If there are any reminders in the database, then start 'ReminderService' service
         if (cursor.getCount() > 0) {

@@ -8,23 +8,30 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     // Name of the database.
-    private static final String DATABASE_NAME = "reminder.db";
+    private static final String DATABASE_NAME = "task_reminder.db";
     // Name of the table in the database.
-    private static final String TABLE_NAME = "reminder_info_table";
-    // Fields present in the table.
-    private static final String COL_0 = "REMINDER_ID";
-    private static final String COL_1 = "TASK_ID";
-    private static final String COL_2 = "REMINDER_TYPE";
-    private static final String COL_3 = "TITLE";
-    private static final String COL_4 = "NAME";
-    private static final String COL_5 = "NUMBER";
-    private static final String COL_6 = "ARRIVAL_MESSAGE";
-    private static final String COL_7 = "DEPARTURE_MESSAGE";
-    private static final String COL_8 = "LOCATION_NAME";
-    private static final String COL_9 = "LOCATION_LATITUDE";
-    private static final String COL_10 = "LOCATION_LONGITUDE";
-    private static final String COL_11 = "RADIUS";
-    private static final String COL_12 = "REMINDER_STATUS";
+    private static final String TABLE_TBR = "reminder_tbr_table";
+    private static final String TABLE_EBR = "reminder_ebr_table";
+    // Fields present in the tbr table.
+    private static final String COL_0_TBR = "REMINDER_ID";
+    private static final String COL_1_TBR = "TASK_ID";
+    private static final String COL_2_TBR = "REMINDER_TYPE";
+    private static final String COL_3_TBR = "TITLE";
+    private static final String COL_4_TBR = "NAME";
+    private static final String COL_5_TBR = "NUMBER";
+    private static final String COL_6_TBR = "ARRIVAL_MESSAGE";
+    private static final String COL_7_TBR = "DEPARTURE_MESSAGE";
+    private static final String COL_8_TBR = "LOCATION_NAME";
+    private static final String COL_9_TBR = "LOCATION_LATITUDE";
+    private static final String COL_10_TBR = "LOCATION_LONGITUDE";
+    private static final String COL_11_TBR = "RADIUS";
+    private static final String COL_12_TBR = "REMINDER_STATUS";
+    // Fields present in ebr table.
+    private static final String COL_1_EBR = "ENTITY";
+    private static final String COL_2_EBR = "REALTIME";
+    private static final String COL_3_EBR = "NAME";
+    private static final String COL_4_EBR = "LATITUDE";
+    private static final String COL_5_EBR = "LONGITUDE";
     // Singleton instance of the database.
     private static DatabaseHelper instance = null;
 
@@ -51,7 +58,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // REMINDER_ID is the primary key of the database.
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_NAME + "(" +
+        sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_TBR + "(" +
                 "REMINDER_ID INTEGER PRIMARY KEY," +
                 "TASK_ID INTEGER," +
                 "REMINDER_TYPE INTEGER," +
@@ -65,6 +72,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "LOCATION_LONGITUDE REAL," +
                 "RADIUS INTEGER," +
                 "REMINDER_STATUS INTEGER)");
+
+        sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_EBR +" (" +
+                "ENTITY TEXT PRIMARY KEY ," +
+                "REALTIME TEXT ," +
+                "NAME TEXT ," +
+                "LATITUDE TEXT ," +
+                "LONGITUDE TEXT)");
     }
 
     // Upgrade the database (if required)
@@ -72,48 +86,67 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // It will first delete the old database and then will call onCreate() method to create a new database.
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + "reminder_add_table");
         onCreate(sqLiteDatabase);
     }
 
     // Method to insert record into the database.
     // It returns -1 if record is not inserted in the database.
     // It returns a number >= 0 if record is inserted in the database.
-    public long insertRecord(int reminderId, int taskId, int reminderType, String title, String name, String number,
+    public long insertRecordTBR(int reminderId, int taskId, int reminderType, String title, String name, String number,
                       String arrivalMessage, String departureMessage, String locationName,
                       double locationLatitude, double locationLongitude, int radius) {
         // Get the database instance.
         SQLiteDatabase db = this.getWritableDatabase();
         // ContentValues provide an empty set of name-value pair.
         ContentValues contentValues = new ContentValues();
-        contentValues.put(COL_0, reminderId);
-        contentValues.put(COL_1, taskId);
-        contentValues.put(COL_2, reminderType);
-        contentValues.put(COL_3, title);
-        contentValues.put(COL_4, name);
-        contentValues.put(COL_5, number);
-        contentValues.put(COL_6, arrivalMessage);
-        contentValues.put(COL_7, departureMessage);
-        contentValues.put(COL_8, locationName);
-        contentValues.put(COL_9, locationLatitude);
-        contentValues.put(COL_10, locationLongitude);
-        contentValues.put(COL_11, radius);
+        contentValues.put(COL_0_TBR, reminderId);
+        contentValues.put(COL_1_TBR, taskId);
+        contentValues.put(COL_2_TBR, reminderType);
+        contentValues.put(COL_3_TBR, title);
+        contentValues.put(COL_4_TBR, name);
+        contentValues.put(COL_5_TBR, number);
+        contentValues.put(COL_6_TBR, arrivalMessage);
+        contentValues.put(COL_7_TBR, departureMessage);
+        contentValues.put(COL_8_TBR, locationName);
+        contentValues.put(COL_9_TBR, locationLatitude);
+        contentValues.put(COL_10_TBR, locationLongitude);
+        contentValues.put(COL_11_TBR, radius);
         // Status = 0 means reminder is not triggered.
-        contentValues.put(COL_12, 0);
+        contentValues.put(COL_12_TBR, 0);
 
         // Insert the record to the specified table in the database and
         // return the result of the operation.
-        return db.insert(TABLE_NAME, null, contentValues);
+        return db.insert(TABLE_TBR, null, contentValues);
+    }
+
+    public boolean insertRecordEBR(String entity,String realtime,String name,String latitude,String longitude) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_1_EBR,entity);
+        contentValues.put(COL_2_EBR,realtime);
+        contentValues.put(COL_3_EBR,name);
+        contentValues.put(COL_4_EBR,latitude);
+        contentValues.put(COL_5_EBR,longitude);
+        long result = db.insert(TABLE_EBR ,null ,contentValues);
+        if(result == -1)
+            return false;
+        else
+            return true;
     }
 
     // Method to retrieve all records from the specified table in the database.
-    public Cursor getAllRecords() {
+    public Cursor getAllRecordsTBR() {
         // Get the database instance.
         SQLiteDatabase db = this.getWritableDatabase();
         // Select all records from the specified table in the database.
-        return db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+        return db.rawQuery("SELECT * FROM " + TABLE_TBR, null);
     }
 
+    public Cursor getAllRecordsEBR() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLE_EBR, null);
+    }
 
     // Method to update status of a reminder record.
     // Primary key, i.e, REMINDER_ID of the reminder is used for upgrading the record.
@@ -123,11 +156,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // ContentValues provide an empty set of name-value pair.
         ContentValues contentValues = new ContentValues();
         // status = 1 means that the reminder has been triggered.
-        contentValues.put(COL_12, status);
+        contentValues.put(COL_12_TBR, status);
 
         // Update the specified table in the database and
         // return the result of the operation.
-        return sqLiteDatabase.update(TABLE_NAME, contentValues, "REMINDER_ID = ?", new String[] {String.valueOf(reminderId)});
+        return sqLiteDatabase.update(TABLE_TBR, contentValues, "REMINDER_ID = ?", new String[] {String.valueOf(reminderId)});
     }
 
     // Method to update TASK_ID of a reminder record.
@@ -137,11 +170,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
         // ContentValues provide an empty set of name-value pair.
         ContentValues contentValues = new ContentValues();
-        contentValues.put(COL_1, taskId);
+        contentValues.put(COL_1_TBR, taskId);
 
         // Update the specified table in the database and
         // return the result of the operation.
-        return sqLiteDatabase.update(TABLE_NAME, contentValues, "REMINDER_ID = ?", new String[] {String.valueOf(reminderId)});
+        return sqLiteDatabase.update(TABLE_TBR, contentValues, "REMINDER_ID = ?", new String[] {String.valueOf(reminderId)});
     }
 
     // Delete a record from the specified table in the database.
@@ -151,6 +184,47 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         // Delete the record from the specified table in the database and
         // return the result of the operation.
-        return db.delete(TABLE_NAME, "REMINDER_ID = ?", new String[]{String.valueOf(reminderId)});
+        return db.delete(TABLE_TBR, "REMINDER_ID = ?", new String[]{String.valueOf(reminderId)});
+    }
+
+    public boolean updateTime(String entity,String realtime) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_1_EBR,entity);
+        contentValues.put(COL_2_EBR,realtime);
+        db.update(TABLE_EBR, contentValues, "ENTITY = ?",new String[] { entity });
+        return true;
+    }
+
+    public boolean updatelat(String entity,String latitude) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_1_EBR,entity);
+        contentValues.put(COL_4_EBR,latitude);
+        db.update(TABLE_EBR, contentValues, "ENTITY = ?",new String[] { entity });
+        return true;
+    }
+
+    public boolean updatelng(String entity,String longitude) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_1_EBR,entity);
+        contentValues.put(COL_5_EBR,longitude);
+        db.update(TABLE_EBR, contentValues, "ENTITY = ?",new String[] { entity });
+        return true;
+    }
+
+    public boolean updateName(String entity,String name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_1_EBR,entity);
+        contentValues.put(COL_3_EBR,name);
+        db.update(TABLE_EBR, contentValues, "ENTITY = ?",new String[] { entity });
+        return true;
+    }
+
+    public Integer deleteData (String entity) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_EBR, "ENTITY = ?",new String[] {entity});
     }
 }

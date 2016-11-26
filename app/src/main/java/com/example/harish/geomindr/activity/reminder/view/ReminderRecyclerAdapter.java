@@ -19,7 +19,7 @@ import java.util.List;
 
 public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecyclerAdapter.ViewHolder> {
     // List containing all the reminder in the database.
-    private static List<Reminder> reminderList;
+    public static List<Reminder> reminderList;
     // Context from which the class 'ReminderRecyclerAdapter' is called.
     private Context context;
     private SparseBooleanArray selectedRecyclerViewItems;
@@ -39,7 +39,7 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
         DatabaseHelper databaseHelper = DatabaseHelper.getInstance(context);
 
         // Retrieving all records from the database.
-        Cursor res = databaseHelper.getAllRecords();
+        Cursor res = databaseHelper.getAllRecordsTBR();
 
         // Iterating through the retrieved records.
         while(res.moveToNext()) {

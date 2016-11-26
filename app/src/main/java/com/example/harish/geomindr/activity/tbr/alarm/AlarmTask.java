@@ -165,7 +165,7 @@ public class AlarmTask extends AppCompatActivity {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
 
                 // Insert the record into the database.
-                long isInserted = databaseHelper.insertRecord(sharedPreferences.getInt("counter", -1), 2, 1,
+                long isInserted = databaseHelper.insertRecordTBR(sharedPreferences.getInt("counter", -1), 2, 1,
                         title, null, null, description, null, locationName, latitude, longitude, triggerRadius);
 
                 // Check whether the record is successfully inserted or not.
