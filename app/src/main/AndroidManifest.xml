@@ -46,7 +46,8 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -56,21 +57,26 @@
         <activity
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:label="@string/app_name" />
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"/>
 
         <service
             android:name=".service.main.ReminderService"
-            android:enabled="true" />
+            android:enabled="true"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".activity.map.TaskMap"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".activity.tbr.alarm.AlarmTask"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".activity.tbr.message.MessageTask"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait"/>
 
         <receiver
             android:name=".broadcast.alarm.AlarmDismissNotificationReceiver"
@@ -90,7 +96,8 @@
 
         <activity
             android:name=".activity.tbr.facebook.FacebookTask"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait"/>
 
         <receiver
             android:name=".broadcast.facebook.FacebookConfirmPostReceiver"
@@ -108,10 +115,12 @@
         <activity
             android:name=".activity.ebr.EntityBasedReminderActivity"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".activity.ebr.PlaceMap"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait"/>
 
         <receiver
             android:name=".broadcast.ebr.Cancel"
@@ -123,12 +132,9 @@
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
             android:taskAffinity=""
-            android:theme="@android:style/Theme.Dialog" />
+            android:theme="@android:style/Theme.Dialog"
+            android:screenOrientation="portrait"/>
 
-        <receiver
-            android:name=".broadcast.ebr.showMap"
-            android:enabled="true"
-            android:exported="true"></receiver>
     </application>
 
 </manifest>

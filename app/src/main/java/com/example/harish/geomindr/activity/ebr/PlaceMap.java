@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.harish.geomindr.MainActivity;
@@ -24,6 +25,9 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
@@ -36,8 +40,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
+
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Locale;
 
 import static android.widget.Toast.makeText;
 import static com.example.harish.geomindr.R.id.googleMap;
@@ -53,6 +59,17 @@ public class PlaceMap extends AppCompatActivity implements LocationListener, OnM
     boolean markerClicked = false;
     // Latitude of clicked marker
     double markerLat, markerLng;
+    // Message to post to Facebook.
+    String msg;
+    // ID of page for place on Facebook.
+    String placePageId;
+    // Found a place corresponding to user's latitude and longitude on facebook.
+    boolean foundPlace = false;
+
+    // Store name of top 5 places returned by Facebook.
+    ArrayList<String> placeName;
+    // Store placeId of top 5 places returned by Facebook.
+    ArrayList<String> placeId;
 
     // Database instance;
     DatabaseHelper databaseHelper;
@@ -69,6 +86,9 @@ public class PlaceMap extends AppCompatActivity implements LocationListener, OnM
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_place_map);
 
+        placeName = new ArrayList<>();
+        placeId = new ArrayList<>();
+
         // Cancel the notification.
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.cancel(this.getIntent().getExtras().getInt("notId"));
@@ -78,7 +98,53 @@ public class PlaceMap extends AppCompatActivity implements LocationListener, OnM
         currLng = this.getIntent().getDoubleExtra("curLng", -9.99);
 
         // Set app action bar name appropriately
-        setTitle("Geomindr : " + entity.toUpperCase(Locale.ENGLISH));
+        switch (entity) {
+            case "atm":
+                setTitle("Geomindr : ATM");
+                break;
+            case "food":
+                setTitle("Geomindr : Food Outlet");
+                break;
+            case "hospital":
+                setTitle("Geomindr : Hospital");
+                break;
+            case "police":
+                setTitle("Geomindr : Police Station");
+                break;
+            case "shopping_mall":
+                setTitle("Geomindr : Shopping Complex");
+                break;
+            case "pharmacy":
+                setTitle("Geomindr : Pharmacy");
+                break;
+            case "gym":
+                setTitle("Geomindr : Gym");
+                break;
+            case "bank":
+                setTitle("Geomindr : Bank");
+                break;
+            case "post_office":
+                setTitle("Geomindr : Post Office");
+                break;
+            case "bar":
+                setTitle("Geomindr : Bar");
+                break;
+            case "library":
+                setTitle("Geomindr : Library");
+                break;
+            case "movie_theater":
+                setTitle("Geomindr : Movie Theatre");
+                break;
+            case "book_store":
+                setTitle("Geomindr : Book Store");
+                break;
+            case "local_government_office":
+                setTitle("Geomindr : Government Office");
+                break;
+            case "gas_station":
+                setTitle("Geomindr : Petrol Pump");
+                break;
+        }
 
         Button btnPostToFacebook = (Button) findViewById(R.id.btn_post_to_facebook);
 
@@ -115,7 +181,71 @@ public class PlaceMap extends AppCompatActivity implements LocationListener, OnM
     }
 
     private void showMsgDialog() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 
+        View view = LayoutInflater.from(this).inflate(R.layout.facebook_msg_post, null);
+        final EditText facebookMsg = (EditText) view.findViewById(R.id.facebook_msg);
+
+        // Set dialog view.
+        alertDialog.setView(view);
+
+        // To prevent dismiss dialog box on back key pressed.
+        alertDialog.setCancelable(false);
+
+        // On pressing Post button, post the message to user's facebook wall.
+        alertDialog.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                if (!facebookMsg.getText().toString().isEmpty()) {
+                    msg = facebookMsg.getText().toString();
+                    getLocationFromFacebook();
+                }
+                else {
+                    Toast.makeText(PlaceMap.this, "Please enter message.",
+                            Toast.LENGTH_SHORT).show();
+                }
+                dialog.cancel();
+            }
+        });
+
+        // On pressing Cancel button, dismiss the dialog box.
+        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        // Showing Alert Message.
+        alertDialog.show();
+    }
+
+    private void showFacebookLocationDialog() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        final AlertDialog dialog = alertDialog.create();
+
+        // Title.
+        alertDialog.setTitle("Post Location?");
+
+        // To prevent dismiss dialog box on back key pressed.
+        alertDialog.setCancelable(false);
+
+        alertDialog.setItems(placeName.toArray(new String[placeName.size()]), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int which) {
+                Toast.makeText(PlaceMap.this, "Posting.", Toast.LENGTH_SHORT).show();
+                placePageId = placeId.get(which);
+                doPost();
+            }
+        });
+
+        // On pressing Cancel button, dismiss the dialog box.
+        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialogInterface, int which) {
+                dialog.cancel();
+            }
+        });
+
+        // Showing Alert Message.
+        alertDialog.show();
     }
 
     private void showFacebookLoginDialog() {
@@ -188,23 +318,23 @@ public class PlaceMap extends AppCompatActivity implements LocationListener, OnM
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                     .findFragmentById(googleMap);
             mapFragment.getMapAsync(this);
-
-            map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(Marker marker) {
-                    markerClicked = true;
-                    markerLat = marker.getPosition().latitude;
-                    markerLng = marker.getPosition().longitude;
-                    return true;
-                }
-            });
         }
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        // Setting markers for user's current location.
+        // Setting marker click listener.
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                markerClicked = true;
+                markerLat = marker.getPosition().latitude;
+                markerLng = marker.getPosition().longitude;
+                return false;
+            }
+        });
 
+        // Setting markers for user's current location.
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
 
@@ -232,6 +362,86 @@ public class PlaceMap extends AppCompatActivity implements LocationListener, OnM
 
         // Delete the Entity Based Reminder record from database.
         databaseHelper.deleteData(entity);
+    }
+
+
+    private void getLocationFromFacebook() {
+        // Make the API call.
+        // Search for facebook page corresponding to user's location.
+        GraphRequest request = GraphRequest.newGraphPathRequest(
+                AccessToken.getCurrentAccessToken(),
+                "/search",
+                new GraphRequest.Callback() {
+                    @Override
+                    public void onCompleted(GraphResponse response) {
+                        if (response.getError() == null) {
+                            if (response.getJSONObject() != null) {
+                                try {
+
+                                    if (!placeName.isEmpty()) {
+                                        placeName.clear();
+                                    }
+                                    if (!placeId.isEmpty()) {
+                                        placeId.clear();
+                                    }
+
+                                    for (int i = 0; i < 5 && i < response.getJSONObject()
+                                            .getJSONArray("data").length(); ++i) {
+                                        placeName.add(response.getJSONObject().getJSONArray("data")
+                                                .getJSONObject(i).getString("name"));
+                                        placeId.add(response.getJSONObject().getJSONArray("data")
+                                                .getJSONObject(i).getString("id"));
+                                    }
+                                    showFacebookLocationDialog();
+                                    //Log.d("place", response.getJSONObject().getJSONArray("data").toString());
+                                    foundPlace = true;
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                });
+
+        // Bundle object to send request parameters to Graph API for
+        // searching the facebook page corresponding to user's location.
+        Bundle parameters = new Bundle();
+        // Type of search.
+        parameters.putString("type", "place");
+        // Coordinates corresponding to the place to be searched.
+        parameters.putString("center", String.valueOf(markerLat) + "," + String.valueOf(markerLng));
+        // Search for facebook pages within 1000 metres of user's location.
+        parameters.putString("distance", "1000");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
+    private void doPost() {
+        Bundle params = new Bundle();
+
+        // Setting the message of the status.
+        // This will be posted to user's facebook wall.
+        params.putString("message", msg);
+
+        // If, found a place corresponding to user's latitude and longitude on facebook
+        // then, set the place field in the post.
+        if (foundPlace) {
+            params.putString("place", placePageId);
+        }
+
+        // Make the API call, i.e, post the status to user's facebook wall.
+        new GraphRequest(
+                AccessToken.getCurrentAccessToken(),
+                "/me/feed",
+                params,
+                HttpMethod.POST,
+                new GraphRequest.Callback() {
+                    public void onCompleted(GraphResponse response) {
+                        Toast.makeText(PlaceMap.this, "Posted.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+        ).executeAsync();
     }
 
     // Result sent by facebook activity when user log in with facebook.
