@@ -4,28 +4,28 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.widget.Toast;
 
 import com.example.harish.geomindr.database.DatabaseHelper;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
-public class Cancel extends BroadcastReceiver {
+public class showMap extends BroadcastReceiver {
+    // Device's current lat and lng.
+    Double currLat, currLong;
+    // Type of entity.
+    String entity;
+    // Database instance;
+    DatabaseHelper databaseHelper;
+
     @Override
     public void onReceive(Context context, Intent intent) {
         // Cancel the notification.
         NotificationManager notificationManager = (NotificationManager)
                 context.getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancel(4444);
 
-        System.out.println(intent.getExtras().getInt("notId"));
-        notificationManager.cancel(intent.getExtras().getInt("notId"));
-
-        String toDelete = intent.getStringExtra("entity");
-
-        DatabaseHelper databaseHelper = DatabaseHelper.getInstance(context);
-        // Delete the Entity Based Reminder record from database.
-        databaseHelper.deleteData(toDelete);
-
-        Toast.makeText(context, "Reminder cancelled.", Toast.LENGTH_SHORT).show();
+        entity = intent.getStringExtra("entity");
+        currLat = intent.getDoubleExtra("curLat", -9.99);
+        currLong = intent.getDoubleExtra("curLng", -9.99);
     }
 }

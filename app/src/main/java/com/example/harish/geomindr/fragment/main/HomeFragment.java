@@ -32,7 +32,6 @@ import com.example.harish.geomindr.activity.ebr.EntityBasedReminderActivity;
 import com.example.harish.geomindr.activity.reminder.view.Reminder;
 import com.example.harish.geomindr.activity.reminder.view.ReminderRecyclerAdapter;
 import com.example.harish.geomindr.activity.tbr.alarm.AlarmTask;
-import com.example.harish.geomindr.activity.tbr.facebook.FacebookTask;
 import com.example.harish.geomindr.activity.tbr.message.MessageTask;
 import com.example.harish.geomindr.database.DatabaseHelper;
 import com.github.clans.fab.FloatingActionButton;
@@ -68,7 +67,6 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
                 view.findViewById(R.id.fab_tbr);
         final FloatingActionButton fabEBR = (FloatingActionButton)
                 view.findViewById(R.id.fab_ebr);
-        final FloatingActionButton fabTBRFacebook = new FloatingActionButton(getContext());
         final FloatingActionButton fabTBRAlarm = new FloatingActionButton(getContext());
         final FloatingActionButton fabTBRMessage = new FloatingActionButton(getContext());
 
@@ -100,11 +98,8 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
                                     statusBarColor = getActivity().getWindow().getStatusBarColor();
                                     //set your color
                                     getActivity().getWindow()
-                                            .setStatusBarColor
-                                                    (ContextCompat
-                                                            .getColor
-                                                                    (mContext,
-                                                                        R.color.colorPrimaryDark));
+                                            .setStatusBarColor(ContextCompat
+                                                    .getColor(mContext, R.color.colorPrimaryDark));
                                 }
 
                                 return true;
@@ -153,15 +148,6 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
                             }
                         };
 
-        // Setting the 'Facebook Task' FloatingActionButton programmatically
-        // because we will show it only if user clicks on 'Task Based Reminder' FloatingActionButton.
-        fabTBRFacebook.setImageResource(R.drawable.ic_fab_facebook);
-        fabTBRFacebook.setButtonSize(FloatingActionButton.SIZE_MINI);
-        fabTBRFacebook.setLabelText("Facebook Task");
-        fabTBRFacebook.setColorNormalResId(R.color.colorPrimaryDark);
-        fabTBRFacebook.setColorPressedResId(R.color.colorPrimaryDark);
-        fabTBRFacebook.setColorRippleResId(R.color.colorPrimaryDark);
-
         // Setting the 'Alarm Task' FloatingActionButton programmatically
         // because we will show it only if user clicks on 'Task Based Reminder' FloatingActionButton.
         fabTBRAlarm.setImageResource(R.drawable.ic_fab_alarm);
@@ -184,15 +170,12 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
         // add or remove the above 3 buttons programmatically.
         fabTBR.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                if (fabTBRFacebook.getParent() == null
-                        && fabTBRAlarm.getParent() == null
+                if (fabTBRAlarm.getParent() == null
                         && fabTBRMessage.getParent() == null) {
-                    addReminderFAM.addMenuButton(fabTBRFacebook, 0);
-                    addReminderFAM.addMenuButton(fabTBRAlarm, 1);
-                    addReminderFAM.addMenuButton(fabTBRMessage, 2);
+                    addReminderFAM.addMenuButton(fabTBRAlarm, 0);
+                    addReminderFAM.addMenuButton(fabTBRMessage, 1);
                 }
                 else {
-                    addReminderFAM.removeMenuButton(fabTBRFacebook);
                     addReminderFAM.removeMenuButton(fabTBRAlarm);
                     addReminderFAM.removeMenuButton(fabTBRMessage);
                 }
@@ -202,15 +185,6 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
         fabEBR.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 startActivity(new Intent(getContext(), EntityBasedReminderActivity.class));
-            }
-        });
-
-        // Start 'FacebookTask' activity to add a new facebook task reminder.
-        fabTBRFacebook.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getContext(), FacebookTask.class);
-                startActivity(intent);
             }
         });
 

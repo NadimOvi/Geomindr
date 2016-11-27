@@ -1,11 +1,13 @@
 package com.example.harish.geomindr.activity.ebr;
 
-import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -13,30 +15,47 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.harish.geomindr.MainActivity;
 import com.example.harish.geomindr.R;
 import com.example.harish.geomindr.database.DatabaseHelper;
 import com.example.harish.geomindr.service.main.ReminderService;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class EntityBasedReminderActivity extends AppCompatActivity {
+    // Buttons.
+    Button atm, food, hospital, police, mall,
+            pharmacy, gym, bank, postal, bar,
+            lib, movie, books, gov, gas;
 
-    Button atm,food,hospital,police,mall,pharmacy,gym,bank,poffice,bar,lib,movie,books,gov,gas;
+    // Checking if button is clicked or not.
+    // If 0 then not clicked and if 1 then clicked.
+    boolean atmCheck = false,
+            foodCheck = false,
+            hospitalCheck = false,
+            policeCheck = false,
+            mallCheck = false,
+            pharmacyCheck = false,
+            gymCheck = false,
+            bankCheck = false,
+            postalCheck = false,
+            barCheck = false,
+            libCheck = false,
+            movieCheck = false,
+            booksCheck = false,
+            govCheck = false,
+            gasCheck = false;
 
-    // checking if button is clicked or not
-    // of 0 then not clicked and if 1 then clicked
-    public int atmCheck=0,foodCheck=0,hospitalCheck=0,policeCheck=0,mallCheck=0,pharmacyCheck=0,gymCheck=0,bankCheck=0,pofficeCheck=0,barCheck=0,libCheck=0,movieCheck=0,booksCheck=0,govCheck=0,gasCheck=0;
-
-    DatabaseHelper myDb;
-    public static Boolean active=false;
-
-    public int mHour,mMinute;
+    // Database instance.
+    DatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entity_based_reminder);
+        setTitle("Remind me nearby?");
 
         atm = (Button) findViewById(R.id.btn_atm);
         food = (Button) findViewById(R.id.btn_food);
@@ -46,7 +65,7 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         pharmacy = (Button) findViewById(R.id.btn_pharmacy);
         gym = (Button) findViewById(R.id.btn_gym);
         bank = (Button) findViewById(R.id.btn_bank);
-        poffice = (Button) findViewById(R.id.btn_poffice);
+        postal = (Button) findViewById(R.id.btn_postal);
         bar = (Button) findViewById(R.id.btn_bar);
         lib = (Button) findViewById(R.id.btn_lib);
         movie = (Button) findViewById(R.id.btn_movie);
@@ -54,88 +73,90 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         gov = (Button) findViewById(R.id.btn_gov);
         gas = (Button) findViewById(R.id.btn_gas);
 
-        myDb = DatabaseHelper.getInstance(EntityBasedReminderActivity.this);
+        databaseHelper = DatabaseHelper.getInstance(EntityBasedReminderActivity.this);
 
-        Cursor res = myDb.getAllRecordsEBR();
+        Cursor res = databaseHelper.getAllRecordsEBR();
+
         while(res.moveToNext()){
             String r = res.getString(0);
-            if(r.equals("atm")){
-                atmCheck=1;
-                atm.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("food")){
-                foodCheck=1;
-                food.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("hospital")){
-                hospitalCheck=1;
-                hospital.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("police")){
-                policeCheck=1;
-                police.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("shopping_mall")){
-                mallCheck=1;
-                mall.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("pharmacy")){
-                pharmacyCheck=1;
-                pharmacy.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("gym")){
-                gymCheck=1;
-                gym.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("bank")){
-                bankCheck=1;
-                bank.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("post_office")){
-                pofficeCheck=1;
-                poffice.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("bar")){
-                barCheck=1;
-                bar.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("library")){
-                libCheck=1;
-                lib.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("movie_theater")){
-                movieCheck=1;
-                movie.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("book_store")){
-                booksCheck=1;
-                books.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("local_government_office")){
-                govCheck=1;
-                gov.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-            }
-            else if(r.equals("gas_station")){
-                gasCheck=1;
-                gas.setBackgroundColor(getResources().getColor(R.color.button_clicked));
+            switch (r) {
+                case "atm":
+                    atmCheck = true;
+                    atm.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "food":
+                    foodCheck = true;
+                    food.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "hospital":
+                    hospitalCheck = true;
+                    hospital.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "police":
+                    policeCheck = true;
+                    police.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "shopping_mall":
+                    mallCheck = true;
+                    mall.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "pharmacy":
+                    pharmacyCheck = true;
+                    pharmacy.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "gym":
+                    gymCheck = true;
+                    gym.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "bank":
+                    bankCheck = true;
+                    bank.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "post_office":
+                    postalCheck = true;
+                    postal.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "bar":
+                    barCheck = true;
+                    bar.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "library":
+                    libCheck = true;
+                    lib.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "movie_theater":
+                    movieCheck = true;
+                    movie.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "book_store":
+                    booksCheck = true;
+                    books.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "local_government_office":
+                    govCheck = true;
+                    gov.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
+                case "gas_station":
+                    gasCheck = true;
+                    gas.setBackgroundColor(ContextCompat.getColor(this, R.color.button_clicked));
+                    break;
             }
         }
 
         atm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(atmCheck==0){
-                    atmCheck=1;
-                    atm.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                    //sending data below
-                    saveData("atm","");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
+                if(!atmCheck){
+                    atmCheck = true;
+                    atm.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_clicked));
+                    saveData("atm", "");
                 }
                 else{
-                    atmCheck=0;
-                    atm.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    atmCheck = false;
+                    atm.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("atm");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -143,35 +164,35 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         pharmacy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(pharmacyCheck==0){
-                    pharmacyCheck=1;
-                    pharmacy.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                    saveData("pharmacy","");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
+                if(!pharmacyCheck){
+                    pharmacyCheck = true;
+                    pharmacy.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_clicked));
+                    saveData("pharmacy", "");
                 }
                 else{
-                    pharmacyCheck=0;
-                    pharmacy.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    pharmacyCheck = false;
+                    pharmacy.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("pharmacy");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        poffice.setOnClickListener(new View.OnClickListener() {
+        postal.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(pofficeCheck==0){
-                    pofficeCheck=1;
-                    poffice.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                    saveData("post_office","");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
+                if(!postalCheck){
+                    postalCheck = true;
+                    postal.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_clicked));
+                    saveData("post_office", "");
                 }
                 else{
-                    pofficeCheck=0;
-                    poffice.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    postalCheck = true;
+                    postal.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("post_office");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -179,36 +200,35 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         books.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(booksCheck==0){
-                    booksCheck=1;
-                    books.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                    saveData("book_store","");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
+                if(!booksCheck){
+                    booksCheck = true;
+                    books.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_clicked));
+                    saveData("book_store", "");
                 }
                 else{
-                    booksCheck=0;
-                    books.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    booksCheck = false;
+                    books.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("book_store");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-
         gas.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(gasCheck==0){
-                    gasCheck=1;
-                    gas.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                    saveData("gas_station","");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
+                if(!gasCheck){
+                    gasCheck = true;
+                    gas.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_clicked));
+                    saveData("gas_station", "");
                 }
                 else{
-                    gasCheck=0;
-                    gas.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    gasCheck = false;
+                    gas.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("gas_station");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -216,91 +236,14 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         food.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(foodCheck==0){
-                    //opens dialog box
-                    final Dialog dialog = new Dialog(EntityBasedReminderActivity.this);
-                    dialog.setContentView(R.layout.dialog);
-                    dialog.setTitle("Set Condition");
-                    final CheckBox check1 = (CheckBox) dialog.findViewById(R.id.check1);
-                    final CheckBox check2 = (CheckBox) dialog.findViewById(R.id.check2);
-                    final EditText name = (EditText) dialog.findViewById(R.id.entity_name);
-                    final Button save = (Button) dialog.findViewById(R.id.save);
-                    final Button cancel = (Button) dialog.findViewById(R.id.cancel);
-
-                    dialog.show();
-
-                    check2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.VISIBLE);
-                                check1.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check1.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    check1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    save.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if(!check1.isChecked() && !check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked() && check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked()){
-                                //save data
-                                foodCheck=1;
-                                food.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("food","");
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else if(check2.isChecked() && !name.getText().toString().equals("")) {
-                                String data = name.getText().toString();
-                                //save data
-                                foodCheck=1;
-                                food.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("food",name.getText().toString());
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else{
-                                save.setBackgroundColor(Color.RED);
-                            }
-                        }
-                    });
-
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                        }
-                    });
+                if(!foodCheck){
+                    showRemindAtDialog(2);
                 }
                 else{
-                    foodCheck=0;
-                    food.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    foodCheck = false;
+                    food.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("food");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -308,92 +251,15 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         hospital.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(hospitalCheck==0){
-                    //opens dialog box
-                    final Dialog dialog = new Dialog(EntityBasedReminderActivity.this);
-                    dialog.setContentView(R.layout.dialog);
-                    dialog.setTitle("Set Condition");
-                    final CheckBox check1 = (CheckBox) dialog.findViewById(R.id.check1);
-                    final CheckBox check2 = (CheckBox) dialog.findViewById(R.id.check2);
-                    final EditText name = (EditText) dialog.findViewById(R.id.entity_name);
-                    final Button save = (Button) dialog.findViewById(R.id.save);
-                    final Button cancel = (Button) dialog.findViewById(R.id.cancel);
-
-                    dialog.show();
-
-                    check2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.VISIBLE);
-                                check1.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check1.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    check1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    save.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if(!check1.isChecked() && !check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked() && check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked()){
-                                //save data
-                                hospitalCheck=1;
-                                hospital.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("hospital","");
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else if(check2.isChecked() && !name.getText().toString().equals("")) {
-                                String data = name.getText().toString();
-                                //save data
-                                hospitalCheck=1;
-                                hospital.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("hospital",name.getText().toString());
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else{
-                                save.setBackgroundColor(Color.RED);
-                            }
-                        }
-                    });
-
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                        }
-                    });
+                if(!hospitalCheck){
+                    showRemindAtDialog(3);
                 }
                 else
                 {
-                    hospitalCheck=0;
-                    hospital.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    hospitalCheck = false;
+                    hospital.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("hospital");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -401,91 +267,14 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         police.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(policeCheck==0){
-                    // dialog box opens
-                    final Dialog dialog = new Dialog(EntityBasedReminderActivity.this);
-                    dialog.setContentView(R.layout.dialog);
-                    dialog.setTitle("Set Condition");
-                    final CheckBox check1 = (CheckBox) dialog.findViewById(R.id.check1);
-                    final CheckBox check2 = (CheckBox) dialog.findViewById(R.id.check2);
-                    final EditText name = (EditText) dialog.findViewById(R.id.entity_name);
-                    final Button save = (Button) dialog.findViewById(R.id.save);
-                    final Button cancel = (Button) dialog.findViewById(R.id.cancel);
-
-                    dialog.show();
-
-                    check2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.VISIBLE);
-                                check1.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check1.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    check1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    save.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if(!check1.isChecked() && !check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked() && check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked()){
-                                //save data
-                                policeCheck=1;
-                                police.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("police","");
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else if(check2.isChecked() && !name.getText().toString().equals("")) {
-                                String data = name.getText().toString();
-                                //save data
-                                policeCheck=1;
-                                police.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("police",name.getText().toString());
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else{
-                                save.setBackgroundColor(Color.RED);
-                            }
-                        }
-                    });
-
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                        }
-                    });
+                if(!policeCheck){
+                    showRemindAtDialog(4);
                 }
                 else{
-                    policeCheck=0;
-                    police.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    policeCheck = false;
+                    police.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("police");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -493,91 +282,14 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         mall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mallCheck==0){
-                    //dialog box opens
-                    final Dialog dialog = new Dialog(EntityBasedReminderActivity.this);
-                    dialog.setContentView(R.layout.dialog);
-                    dialog.setTitle("Set Condition");
-                    final CheckBox check1 = (CheckBox) dialog.findViewById(R.id.check1);
-                    final CheckBox check2 = (CheckBox) dialog.findViewById(R.id.check2);
-                    final EditText name = (EditText) dialog.findViewById(R.id.entity_name);
-                    final Button save = (Button) dialog.findViewById(R.id.save);
-                    final Button cancel = (Button) dialog.findViewById(R.id.cancel);
-
-                    dialog.show();
-
-                    check2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.VISIBLE);
-                                check1.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check1.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    check1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    save.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if(!check1.isChecked() && !check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked() && check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked()){
-                                //save data
-                                mallCheck=1;
-                                mall.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("shopping_mall","");
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else if(check2.isChecked() && !name.getText().toString().equals("")) {
-                                String data = name.getText().toString();
-                                //save data
-                                mallCheck=1;
-                                mall.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("shopping_mall",name.getText().toString());
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else{
-                                save.setBackgroundColor(Color.RED);
-                            }
-                        }
-                    });
-
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                        }
-                    });
+                if(!mallCheck){
+                    showRemindAtDialog(5);
                 }
                 else{
-                    mallCheck=0;
-                    mall.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    mallCheck = false;
+                    mall.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("shopping_mall");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -585,91 +297,14 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         gym.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(gymCheck==0){
-                    //dialog box opens
-                    final Dialog dialog = new Dialog(EntityBasedReminderActivity.this);
-                    dialog.setContentView(R.layout.dialog);
-                    dialog.setTitle("Set Condition");
-                    final CheckBox check1 = (CheckBox) dialog.findViewById(R.id.check1);
-                    final CheckBox check2 = (CheckBox) dialog.findViewById(R.id.check2);
-                    final EditText name = (EditText) dialog.findViewById(R.id.entity_name);
-                    final Button save = (Button) dialog.findViewById(R.id.save);
-                    final Button cancel = (Button) dialog.findViewById(R.id.cancel);
-
-                    dialog.show();
-
-                    check2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.VISIBLE);
-                                check1.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check1.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    check1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    save.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if(!check1.isChecked() && !check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked() && check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked()){
-                                //save data
-                                gymCheck=1;
-                                gym.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("gym","");
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else if(check2.isChecked() && !name.getText().toString().equals("")) {
-                                String data = name.getText().toString();
-                                //save data
-                                gymCheck=1;
-                                gym.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("gym",name.getText().toString());
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else{
-                                save.setBackgroundColor(Color.RED);
-                            }
-                        }
-                    });
-
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                        }
-                    });
+                if(!gymCheck){
+                    showRemindAtDialog(7);
                 }
                 else{
-                    gymCheck=0;
-                    gym.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    gymCheck = false;
+                    gym.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("gym");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -677,91 +312,16 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         bank.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(bankCheck==0){
-                    //opens dialog box
-                    final Dialog dialog = new Dialog(EntityBasedReminderActivity.this);
-                    dialog.setContentView(R.layout.dialog);
-                    dialog.setTitle("Set Condition");
-                    final CheckBox check1 = (CheckBox) dialog.findViewById(R.id.check1);
-                    final CheckBox check2 = (CheckBox) dialog.findViewById(R.id.check2);
-                    final EditText name = (EditText) dialog.findViewById(R.id.entity_name);
-                    final Button save = (Button) dialog.findViewById(R.id.save);
-                    final Button cancel = (Button) dialog.findViewById(R.id.cancel);
-
-                    dialog.show();
-
-                    check2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.VISIBLE);
-                                check1.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check1.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    check1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    save.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if(!check1.isChecked() && !check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked() && check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked()){
-                                //save data
-                                bankCheck=1;
-                                bank.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("bank","");
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else if(check2.isChecked() && !name.getText().toString().equals("")) {
-                                String data = name.getText().toString();
-                                //save data
-                                bankCheck=1;
-                                bank.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("bank",name.getText().toString());
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else{
-                                save.setBackgroundColor(Color.RED);
-                            }
-                        }
-                    });
-
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                        }
-                    });
+                if(!bankCheck){
+                    showRemindAtDialog(8);
                 }
                 else{
-                    bankCheck=0;
-                    bank.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    bankCheck = false;
+                    bank.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("bank");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EntityBasedReminderActivity.this,
+                            "Reminder removed.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -769,91 +329,14 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         bar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(barCheck==0){
-                    //opens dialog box
-                    final Dialog dialog = new Dialog(EntityBasedReminderActivity.this);
-                    dialog.setContentView(R.layout.dialog);
-                    dialog.setTitle("Set Condition");
-                    final CheckBox check1 = (CheckBox) dialog.findViewById(R.id.check1);
-                    final CheckBox check2 = (CheckBox) dialog.findViewById(R.id.check2);
-                    final EditText name = (EditText) dialog.findViewById(R.id.entity_name);
-                    final Button save = (Button) dialog.findViewById(R.id.save);
-                    final Button cancel = (Button) dialog.findViewById(R.id.cancel);
-
-                    dialog.show();
-
-                    check2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.VISIBLE);
-                                check1.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check1.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    check1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    save.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if(!check1.isChecked() && !check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked() && check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked()){
-                                //save data
-                                barCheck=1;
-                                bar.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("bar","");
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else if(check2.isChecked() && !name.getText().toString().equals("")) {
-                                String data = name.getText().toString();
-                                //save data
-                                barCheck=1;
-                                bar.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("bar",name.getText().toString());
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else{
-                                save.setBackgroundColor(Color.RED);
-                            }
-                        }
-                    });
-
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                        }
-                    });
+                if(!barCheck){
+                    showRemindAtDialog(10);
                 }
                 else{
-                    barCheck=0;
-                    bar.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    barCheck = false;
+                    bar.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("bar");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -861,91 +344,14 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         lib.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(libCheck==0){
-                    // opens dialog box
-                    final Dialog dialog = new Dialog(EntityBasedReminderActivity.this);
-                    dialog.setContentView(R.layout.dialog);
-                    dialog.setTitle("Set Condition");
-                    final CheckBox check1 = (CheckBox) dialog.findViewById(R.id.check1);
-                    final CheckBox check2 = (CheckBox) dialog.findViewById(R.id.check2);
-                    final EditText name = (EditText) dialog.findViewById(R.id.entity_name);
-                    final Button save = (Button) dialog.findViewById(R.id.save);
-                    final Button cancel = (Button) dialog.findViewById(R.id.cancel);
-
-                    dialog.show();
-
-                    check2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.VISIBLE);
-                                check1.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check1.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    check1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    save.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if(!check1.isChecked() && !check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked() && check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked()){
-                                //save data
-                                libCheck=1;
-                                lib.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("library","");
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else if(check2.isChecked() && !name.getText().toString().equals("")) {
-                                String data = name.getText().toString();
-                                //save data
-                                libCheck=1;
-                                lib.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("library",name.getText().toString());
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else{
-                                save.setBackgroundColor(Color.RED);
-                            }
-                        }
-                    });
-
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                        }
-                    });
+                if(!libCheck){
+                    showRemindAtDialog(11);
                 }
                 else{
-                    libCheck=0;
-                    lib.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    libCheck = false;
+                    lib.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("library");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -953,91 +359,14 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         movie.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(movieCheck==0){
-                    //opens dialog box
-                    final Dialog dialog = new Dialog(EntityBasedReminderActivity.this);
-                    dialog.setContentView(R.layout.dialog);
-                    dialog.setTitle("Set Condition");
-                    final CheckBox check1 = (CheckBox) dialog.findViewById(R.id.check1);
-                    final CheckBox check2 = (CheckBox) dialog.findViewById(R.id.check2);
-                    final EditText name = (EditText) dialog.findViewById(R.id.entity_name);
-                    final Button save = (Button) dialog.findViewById(R.id.save);
-                    final Button cancel = (Button) dialog.findViewById(R.id.cancel);
-
-                    dialog.show();
-
-                    check2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.VISIBLE);
-                                check1.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check1.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    check1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    save.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if(!check1.isChecked() && !check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked() && check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked()){
-                                //save data
-                                movieCheck=1;
-                                movie.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("movie_theater","");
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else if(check2.isChecked() && !name.getText().toString().equals("")) {
-                                String data = name.getText().toString();
-                                //save data
-                                movieCheck=1;
-                                movie.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("movie_theater",name.getText().toString());
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else{
-                                save.setBackgroundColor(Color.RED);
-                            }
-                        }
-                    });
-
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                        }
-                    });
+                if(!movieCheck){
+                    showRemindAtDialog(12);
                 }
                 else{
-                    movieCheck=0;
-                    movie.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    movieCheck = false;
+                    movie.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("movie_theater");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -1045,151 +374,320 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         gov.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(govCheck==0){
-                    //opens dialog box
-                    final Dialog dialog = new Dialog(EntityBasedReminderActivity.this);
-                    dialog.setContentView(R.layout.dialog);
-                    dialog.setTitle("Set Condition");
-                    final CheckBox check1 = (CheckBox) dialog.findViewById(R.id.check1);
-                    final CheckBox check2 = (CheckBox) dialog.findViewById(R.id.check2);
-                    final EditText name = (EditText) dialog.findViewById(R.id.entity_name);
-                    final Button save = (Button) dialog.findViewById(R.id.save);
-                    final Button cancel = (Button) dialog.findViewById(R.id.cancel);
-
-                    dialog.show();
-
-                    check2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.VISIBLE);
-                                check1.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check1.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    check1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            if(b) {
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(false);
-                            }
-                            else{
-                                name.setVisibility(View.GONE);
-                                check2.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    save.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if(!check1.isChecked() && !check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked() && check2.isChecked()){
-                                save.setBackgroundColor(Color.RED);
-                            }
-                            else if(check1.isChecked()){
-                                //save data
-                                govCheck=1;
-                                gov.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("local_government_office","");
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else if(check2.isChecked() && !name.getText().toString().equals("")) {
-                                String data = name.getText().toString();
-                                //save data
-                                govCheck=1;
-                                gov.setBackgroundColor(getResources().getColor(R.color.button_clicked));
-                                saveData("local_government_office",name.getText().toString());
-                                Toast.makeText(EntityBasedReminderActivity.this, "Data will be added to database", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                            else{
-                                save.setBackgroundColor(Color.RED);
-                            }
-                        }
-                    });
-
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                        }
-                    });
+                if(!govCheck){
+                    showRemindAtDialog(14);
                 }
                 else{
-                    govCheck=0;
-                    gov.setBackgroundColor(getResources().getColor(R.color.button_unclicked));
+                    govCheck = false;
+                    gov.setBackgroundColor(ContextCompat.
+                            getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("local_government_office");
-                    Toast.makeText(EntityBasedReminderActivity.this, "Data will be deleted from database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
     }
 
+    private void showRemindAtDialog(final int btnPos) {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(EntityBasedReminderActivity.this);
+
+        // Setting Dialog Title.
+        alertDialog.setTitle("Remind at?");
+
+        // Set the dialog layout.
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog, null);
+        alertDialog.setView(view);
+
+        final CheckBox checkAny = (CheckBox) view.findViewById(R.id.checkAny);
+        final CheckBox checkParticular = (CheckBox) view.findViewById(R.id.checkParticular);
+        final EditText entityName = (EditText) view.findViewById(R.id.entity_name);
+
+        String anyLocText = "Any Location";
+        String particularLocText = "Particular Location";
+        String entityNameHint = "Enter Location Name";
+
+        switch (btnPos) {
+            case 2:
+                anyLocText = "Any Food Outlet";
+                particularLocText = "Particular Food Outlet";
+                entityNameHint = "Enter Food Outlet Name";
+                break;
+            case 3:
+                anyLocText = "Any Hospital";
+                particularLocText = "Particular Hospital";
+                entityNameHint = "Enter Hospital Name";
+                break;
+            case 4:
+                anyLocText = "Any Police Station";
+                particularLocText = "Particular Police Station";
+                entityNameHint = "Enter Police Station Name";
+                break;
+            case 5:
+                anyLocText = "Any Shopping Complex";
+                particularLocText = "Particular Shopping Complex";
+                entityNameHint = "Enter Shopping Complex Name";
+                break;
+            case 7:
+                anyLocText = "Any Gym";
+                particularLocText = "Particular Gym";
+                entityNameHint = "Enter Gym Name";
+                break;
+            case 8:
+                anyLocText = "Any Bank";
+                particularLocText = "Particular Bank";
+                entityNameHint = "Enter Bank Name";
+                break;
+            case 10:
+                anyLocText = "Any Bar";
+                particularLocText = "Particular Bar";
+                entityNameHint = "Enter Bar Name";
+                break;
+            case 11:
+                anyLocText = "Any Library";
+                particularLocText = "Particular Library";
+                entityNameHint = "Enter Library Name";
+                break;
+            case 12:
+                anyLocText = "Any Movie Theatre";
+                particularLocText = "Particular Movie Theatre";
+                entityNameHint = "Enter Movie Theatre Name";
+                break;
+            case 14:
+                anyLocText = "Any Government Office";
+                particularLocText = "Particular Government Office";
+                entityNameHint = "Enter Government Office Name";
+                break;
+        }
+
+        checkAny.setText(anyLocText);
+        checkParticular.setText(particularLocText);
+        entityName.setHint(entityNameHint);
+
+        checkParticular.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean selected) {
+                if(selected) {
+                    entityName.setVisibility(View.VISIBLE);
+                    checkAny.setEnabled(false);
+                }
+                else{
+                    entityName.setVisibility(View.GONE);
+                    checkAny.setEnabled(true);
+                }
+            }
+        });
+
+        checkAny.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean selected) {
+                if(selected) {
+                    entityName.setVisibility(View.GONE);
+                    checkParticular.setEnabled(false);
+                }
+                else{
+                    entityName.setVisibility(View.GONE);
+                    checkParticular.setEnabled(true);
+                }
+            }
+        });
+
+        // On pressing Save button.
+        alertDialog.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                if(!checkAny.isChecked() && !checkParticular.isChecked()){
+                    Toast.makeText(EntityBasedReminderActivity.this,
+                            "Please select appropriate checkbox.", Toast.LENGTH_SHORT).show();
+                }
+                else if(checkAny.isChecked() && checkParticular.isChecked()){
+                    Toast.makeText(EntityBasedReminderActivity.this,
+                            "Please select one checkbox only.", Toast.LENGTH_SHORT).show();
+                }
+                else if(checkAny.isChecked()){
+                    switch (btnPos) {
+                        case 2:
+                            foodCheck = true;
+                            food.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("food", "");
+                            break;
+                        case 3:
+                            hospitalCheck = true;
+                            hospital.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("hospital", "");
+                            break;
+                        case 4:
+                            policeCheck = true;
+                            police.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("police", "");
+                            break;
+                        case 5:
+                            mallCheck = true;
+                            mall.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("shopping_mall", "");
+                            break;
+                        case 7:
+                            gymCheck = true;
+                            gym.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("gym", "");
+                            break;
+                        case 8:
+                            bankCheck = true;
+                            bank.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("bank", "");
+                            break;
+                        case 10:
+                            barCheck = true;
+                            bar.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("bar", "");
+                            break;
+                        case 11:
+                            libCheck = true;
+                            lib.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("library", "");
+                            break;
+                        case 12:
+                            movieCheck = true;
+                            movie.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("movie_theater", "");
+                            break;
+                        case 14:
+                            govCheck = true;
+                            gov.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("local_government_office", "");
+                            break;
+                    }
+                    dialog.cancel();
+                }
+                else if(checkParticular.isChecked() && !entityName.getText().toString().equals("")) {
+                    switch (btnPos) {
+                        case 2:
+                            foodCheck = true;
+                            food.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("food", entityName.getText().toString());
+                            break;
+                        case 3:
+                            hospitalCheck = true;
+                            hospital.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("hospital", entityName.getText().toString());
+                            break;
+                        case 4:
+                            policeCheck = true;
+                            police.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("police", entityName.getText().toString());
+                            break;
+                        case 5:
+                            mallCheck = true;
+                            mall.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("shopping_mall", entityName.getText().toString());
+                            break;
+                        case 7:
+                            gymCheck = true;
+                            gym.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("gym", entityName.getText().toString());
+                            break;
+                        case 8:
+                            bankCheck = true;
+                            bank.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("bank", entityName.getText().toString());
+                            break;
+                        case 10:
+                            barCheck = true;
+                            bar.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("bar", entityName.getText().toString());
+                            break;
+                        case 11:
+                            libCheck = true;
+                            lib.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("library", entityName.getText().toString());
+                            break;
+                        case 12:
+                            movieCheck = true;
+                            movie.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("movie_theater", entityName.getText().toString());
+                            break;
+                        case 14:
+                            govCheck = true;
+                            gov.setBackgroundColor(ContextCompat.getColor
+                                    (EntityBasedReminderActivity.this, R.color.button_clicked));
+                            saveData("local_government_office", entityName.getText().toString());
+                            break;
+                    }
+                    dialog.cancel();
+                }
+                else {
+                    Toast.makeText(EntityBasedReminderActivity.this,
+                            "Incomplete input. Please try again.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        // On pressing Cancel button, dismiss the dialog box.
+        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        // Showing Alert Message.
+        alertDialog.show();
+    }
+
     public void saveData(String entity,String name){
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
-        String currentDateTime = dateFormat.format(new Date()); // Find current time
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
+        // Find current time
+        String currentDateTime = dateFormat.format(new Date());
         String indian_time[] = currentDateTime.split(":");
         int currTime = Integer.parseInt(indian_time[0]);
-        if (currTime > 12)
+
+        if (currTime > 12) {
             currTime = currTime - 12;
+        }
+
         currentDateTime = Integer.toString(currTime) + ":" + indian_time[1];
-        Boolean isInserted = myDb.insertRecordEBR(entity,currentDateTime,name,"0.0","0.0");
+        Boolean isInserted = databaseHelper.insertRecordEBR(entity, currentDateTime, name, 0.0, 0.0, 0);
+
         if (isInserted) {
-            Toast.makeText(EntityBasedReminderActivity.this, "Inserted", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Reminder added.", Toast.LENGTH_SHORT).show();
+            startService(new Intent(this, ReminderService.class));
+        }
+        else {
+            Toast.makeText(this, "Reminder not added. Please try again.", Toast.LENGTH_SHORT).show();
         }
     }
 
     public void deleteData(String entity){
-        Integer deleted = myDb.deleteData(entity);
-        if(deleted<=0)
-            Toast.makeText(this, "Nothing is deleted", Toast.LENGTH_SHORT).show();
-        else
-            Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    protected void onStart() {
-        active=true;
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+        Integer deleted = databaseHelper.deleteData(entity);
+        if(deleted<=0) {
+            Toast.makeText(this, "Nothing deleted.", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            Toast.makeText(this, "Reminder deleted.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
     public void onBackPressed() {
-        active=false;
-        Toast.makeText(this, "Service will start", Toast.LENGTH_SHORT).show();
-        Intent a1 = new Intent(getApplicationContext(), ReminderService.class);
-        startService(a1);
         super.onBackPressed();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
     }
 }

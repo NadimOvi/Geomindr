@@ -10,12 +10,4 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.harish.geomindr.activity.ebr.TimerNotification">
 
-    <TimePicker
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="161dp"
-        android:id="@+id/timePicker"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true" />
 </RelativeLayout>

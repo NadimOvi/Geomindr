@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
@@ -16,6 +17,9 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.AlertDialog;
+import android.view.LayoutInflater;
+import android.view.View;
 
 import com.example.harish.geomindr.R;
 import com.example.harish.geomindr.activity.ebr.GooglePlacesReadTask;
@@ -36,58 +40,56 @@ import com.google.android.gms.location.LocationServices;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class ReminderService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
-    // to get the last known location
-    // for most cases, last known location is equivalent to current location
+    // To get the last known location.
+    // For most cases, last known location is equivalent to current location.
     public static Location lastLocation;
-    // flag to stop the service once we have reached the destination location
-    // true = stop the service
-    // false = continue executing the service
+    // Flag to stop the service once we have reached the destination location.
+    // true = stop the service.
+    // false = continue executing the service.
     public static boolean stopService;
-    // instance of GoogleApiClient
-    // used to access google's FusedLocationApi (bette alternative of android's LocationListener)
+    // Instance of GoogleApiClient.
+    // Used to access google's FusedLocationApi (bette alternative of android's LocationListener).
     GoogleApiClient googleApiClient;
-    // device's current location's latitude
+    // Device's current location's latitude.
     double curLatitude;
-    // device's current location's longitude
+    // Device's current location's longitude.
     double curLongitude;
-    // creating an object of DatabaseHelper class
+    // Creating an object of DatabaseHelper class.
     DatabaseHelper databaseHelper;
-    private int PROXIMITY_RADIUS = 2000;
-    private String GOOGLE_API_KEY = "AIzaSyA68JFWLgTb_UzQQUUR_0ystLn6MFAvvR8";
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-    }
+    // Radius for Entity Based Reminder.
+    int PROXIMITY_RADIUS = 1000;
+    String GOOGLE_API_KEY = "AIzaSyA68JFWLgTb_UzQQUUR_0ystLn6MFAvvR8";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // build the instance of GoogleApiClient
+        // Build the instance of GoogleApiClient.
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
 
-        // connect to the desired GoogleApiClient service
+        // Connect to the desired GoogleApiClient service.
         googleApiClient.connect();
 
-        // restart the service if it is killed by the android os
+        // Restart the service if it is killed by the android OS.
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
-        // continue executing the service until stopService flag is true, i.e, until we have not reached our destination location
+        // Continue executing the service until stopService flag is true, i.e,
+        // until we have not reached our destination location.
         if (!stopService) {
             Intent intent = new Intent(this, ReminderService.class);
             PendingIntent pendingIntent = PendingIntent.getService(this, 1000, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-            // again start the service after 10 seconds
+            // Again start the service after 10 seconds.
             alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 10000, pendingIntent);
         }
     }
@@ -98,14 +100,16 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
     }
 
     @Override
-    // Right now i am assuming that user will not explicitly revoke location permission manually from settings
+    // Right now i am assuming that user will not explicitly revoke location permission manually from settings.
     @SuppressWarnings({"MissingPermission"})
     public void onConnected(Bundle bundle) {
         // Get device's last known location using google's FusedLocation API.
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
 
         if (lastLocation != null) {
+            // First, check for Entity Based Reminders.
             checkEBRReminder();
+
             // Get the device's current location's latitude.
             // Only for debugging purpose
             curLatitude = lastLocation.getLatitude();
@@ -253,53 +257,82 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         if (res.getCount() > 0) {
             // Iterating through the retrieved records.
             while (res.moveToNext()) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
-                String currentDateTime = dateFormat.format(new Date()); // Find current time
-                String indian_time[] = currentDateTime.split(":");
-                int currHour = Integer.parseInt(indian_time[0]);
-                if(currHour>12)
-                    currHour = currHour-12;
-                int currMin = Integer.parseInt(indian_time[1]);
-                String data_time[] = res.getString(1).split(":");
-                System.out.println(currentDateTime);
-                System.out.println(res.getString(1));
-                int dataHour = Integer.parseInt(data_time[0]);
-                int dataMin = Integer.parseInt(data_time[1]);
+                // Check only if EBR record is inactive.
+                if (res.getInt(6) == 0 && res.getDouble(3) == 0.0 && res.getDouble(4) == 0.0) {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
+                    // Find current time.
+                    String currentDateTime = dateFormat.format(new Date());
+                    String indian_time[] = currentDateTime.split(":");
+                    int currHour = Integer.parseInt(indian_time[0]);
 
-
-                if(dataHour<currHour || (dataHour==currHour && dataMin<=currMin)) {
-                    // Requesting this url for finding nearest locations
-                    StringBuilder googlePlacesUrl = new StringBuilder
-                            ("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
-                    googlePlacesUrl.append("location=" + lastLocation.getLatitude() +
-                            "," + lastLocation.getLongitude());
-                    googlePlacesUrl.append("&radius=" + PROXIMITY_RADIUS);
-                    googlePlacesUrl.append("&types=" + res.getString(0));
-                    googlePlacesUrl.append("&sensor=true");
-                    googlePlacesUrl.append("&key=" + GOOGLE_API_KEY);
-
-                    GooglePlacesReadTask googlePlacesReadTask = new GooglePlacesReadTask();
-                    Object[] toPass = new Object[4];
-                    toPass[0] = googlePlacesUrl.toString();
-                    toPass[1] = res.getString(0);
-                    toPass[2] = res.getString(2);
-                    toPass[3] = getApplicationContext();
-                    googlePlacesReadTask.execute(toPass);
-
-
-                    if (!res.getString(3).equals("0.0") && !res.getString(4).equals("0.0")) {
-                        //send notification to the user
-                        sendNotificationEBR(res.getString(0), res.getString(2), res.getString(3), res.getString(4));
+                    if (currHour > 12) {
+                        currHour = currHour - 12;
                     }
+
+                    int currMin = Integer.parseInt(indian_time[1]);
+                    String data_time[] = res.getString(1).split(":");
+                    int dataHour = Integer.parseInt(data_time[0]);
+                    int dataMin = Integer.parseInt(data_time[1]);
+
+                    if (dataHour < currHour || (dataHour == currHour && dataMin <= currMin)) {
+                        // Requesting this url for finding nearest locations
+                        String googlePlacesUrl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?";
+                        googlePlacesUrl += "location=" + lastLocation.getLatitude()
+                                + "," + lastLocation.getLongitude();
+                        googlePlacesUrl += "&radius=" + PROXIMITY_RADIUS;
+                        googlePlacesUrl += "&types=" + res.getString(0);
+                        googlePlacesUrl += "&sensor=true";
+                        googlePlacesUrl += "&key=" + GOOGLE_API_KEY;
+
+                        GooglePlacesReadTask googlePlacesReadTask = new GooglePlacesReadTask();
+                        Object[] toPass = new Object[4];
+                        toPass[0] = googlePlacesUrl;
+                        toPass[1] = res.getString(0);
+                        toPass[2] = res.getString(2);
+                        toPass[3] = getApplicationContext();
+                        googlePlacesReadTask.execute(toPass);
+                    }
+                }
+                else if (res.getInt(6) == 0 && res.getDouble(3) != 0.0 && res.getDouble(4) != 0.0) {
+                    databaseHelper.makeEBRActive(res.getString(0));
+                    //send notification to the user
+                    sendNotificationEBR(res.getString(0));
                 }
             }
         }
+
+        res.close();
     }
 
 
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+
+        // Setting Dialog Title.
+        alertDialog.setTitle("ALERT");
+
+        // Setting Dialog Message.
+        alertDialog.setMessage("Log in with your Facebook ID to allow the app" +
+                " to post to your Facebook wall.");
+
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_fb_login, null);
+
+        // Set dialog view.
+        alertDialog.setView(view);
+
+        // To prevent dismiss dialog box on back key pressed.
+        alertDialog.setCancelable(false);
+
+        // On pressing Cancel button, dismiss the dialog box.
+        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        alertDialog.show();
 
     }
 
@@ -493,100 +526,103 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         notificationManager.notify(3333, notificationBuilder.build());
     }
 
-    public void sendNotificationEBR(String entity,String entityName,String entityLat,String entityLng)
-    {
-        String notiName;
+    public void sendNotificationEBR(String entity) {
+        String notName;
+        int notId = (int) System.currentTimeMillis();
 
-        Intent intent = new Intent(this, PlaceMap.class);
-        intent.putExtra("map",entity);
-        intent.putExtra("map1",lastLocation.getLatitude());
-        intent.putExtra("map2",lastLocation.getLongitude());
-        intent.putExtra("map3",entityLat);
-        intent.putExtra("map4",entityLng);
-        intent.putExtra("map5",entityName);
+        Intent mapIntent = new Intent(ReminderService.this, PlaceMap.class);
+        mapIntent.putExtra("entity", entity);
+        mapIntent.putExtra("curLat", lastLocation.getLatitude());
+        mapIntent.putExtra("curLng", lastLocation.getLongitude());
+        mapIntent.putExtra("notId", notId);
 
-        Intent intent1 = new Intent(this, Cancel.class);
-        intent1.putExtra("cancel",true);
-        intent1.putExtra("cancel1",entity);
+        Intent cancelIntent = new Intent(ReminderService.this, Cancel.class);
+        cancelIntent.putExtra("entity", entity);
+        cancelIntent.putExtra("notId", notId);
 
-        Intent intent2 = new Intent(this, TimerNotification.class);
-        intent2.putExtra("later",true);
-        intent2.putExtra("later1",entity);
+        Intent remindLaterIntent = new Intent(ReminderService.this, TimerNotification.class);
+        remindLaterIntent.putExtra("entity", entity);
+        remindLaterIntent.putExtra("notId", notId);
 
-        PendingIntent pIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent, 0);
-        PendingIntent pIntent1 = PendingIntent.getBroadcast(this, (int) System.currentTimeMillis(), intent1, 0);
-        PendingIntent pIntent2 = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent2, 0);
+        PendingIntent mapPendingIntent = PendingIntent.getActivity
+                (ReminderService.this, (int) System.currentTimeMillis(), mapIntent, 0);
+        PendingIntent cancelPendingIntent = PendingIntent.getBroadcast
+                (ReminderService.this, (int) System.currentTimeMillis(), cancelIntent, 0);
+        PendingIntent remindLaterPendingIntent = PendingIntent.getActivity
+                (ReminderService.this, (int) System.currentTimeMillis(), remindLaterIntent, 0);
 
-        NotificationCompat.Action action = new NotificationCompat.Action.Builder
-                (R.drawable.ic_add_location_white_18dp, "Map", pIntent).build();
-        NotificationCompat.Action action2 = new NotificationCompat.Action.Builder
-                (R.drawable.ic_cancel_white_18dp, "Cancel", pIntent1).build();
-        NotificationCompat.Action action1 = new NotificationCompat.Action.Builder
-                (R.drawable.ic_watch_later_white_18dp, "Later", pIntent2).build();
+        NotificationCompat.Action showAction = new NotificationCompat.Action.Builder
+                (R.drawable.ic_check_white_24dp, "Yes", mapPendingIntent).build();
+        NotificationCompat.Action cancelAction = new NotificationCompat.Action.Builder
+                (R.drawable.ic_close_white_24dp, "No", cancelPendingIntent).build();
+        NotificationCompat.Action remindLaterAction = new NotificationCompat.Action.Builder
+                (R.drawable.ic_watch_later_white_24dp, "Later", remindLaterPendingIntent).build();
 
-        if(entity.equals("atm")){
-            notiName = "ATM";
-        }
-        else if(entity.equals("food")){
-            notiName = "Restaurant";
-        }
-        else if(entity.equals("hospital")){
-            notiName = "Hospital";
-        }
-        else if(entity.equals("police")){
-            notiName = "Police";
-        }
-        else if(entity.equals("shopping_mall")){
-            notiName = "Shopping Mall";
-        }
-        else if(entity.equals("pharmacy")){
-            notiName = "Medical Store";
-        }
-        else if(entity.equals("gym")){
-            notiName = "Gym";
-        }
-        else if(entity.equals("bank")){
-            notiName = "Bank";
-        }
-        else if(entity.equals("post_office")){
-            notiName = "Post Office";
-        }
-        else if(entity.equals("library")){
-            notiName = "Library";
-        }
-        else if(entity.equals("bar")){
-            notiName = "Bar";
-        }
-        else if(entity.equals("movie_theater")){
-            notiName = "Movie Theater";
-        }
-        else if(entity.equals("book_store")){
-            notiName = "Book Store";
-        }
-        else if(entity.equals("local_government_office")){
-            notiName = "Government Office";
-        }
-        else{
-            notiName = "Petrol Pump";
+        switch (entity) {
+            case "atm":
+                notName = "ATM";
+                break;
+            case "food":
+                notName = "Restaurant";
+                break;
+            case "hospital":
+                notName = "Hospital";
+                break;
+            case "police":
+                notName = "Police";
+                break;
+            case "shopping_mall":
+                notName = "Shopping Complex";
+                break;
+            case "pharmacy":
+                notName = "Medical Store";
+                break;
+            case "gym":
+                notName = "Gym";
+                break;
+            case "bank":
+                notName = "Bank";
+                break;
+            case "post_office":
+                notName = "Post Office";
+                break;
+            case "library":
+                notName = "Library";
+                break;
+            case "bar":
+                notName = "Bar";
+                break;
+            case "movie_theater":
+                notName = "Movie Theatre";
+                break;
+            case "book_store":
+                notName = "Book Store";
+                break;
+            case "local_government_office":
+                notName = "Government Office";
+                break;
+            default:
+                notName = "Petrol Pump";
+                break;
         }
 
         // Build notification
-        Notification noti = new NotificationCompat.Builder(this)
-                .setContentTitle("You are near to " + notiName)
-                .setContentText("").setSmallIcon(R.drawable.ic_notifications_white_24dp)
-                .setContentIntent(pIntent)
-                .setVibrate(new long[]{1000, 1000})
+        Notification notification = new NotificationCompat.Builder(ReminderService.this)
+                .setContentTitle("Geomindr ALERT!")
+                .setStyle(new NotificationCompat.BigTextStyle().bigText
+                        ("Found " + notName + " nearby you. Do you want to have a look?"))
+                .setSmallIcon(R.drawable.ic_notifications_white_24dp)
+                .setContentIntent(mapPendingIntent)
+                // Vibrate the device twice when notification pops out.
+                .setDefaults(Notification.DEFAULT_VIBRATE)
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
-                .setAutoCancel(true)
-                .addAction(action)
-                .addAction(action1)
-                .addAction(action2)
+                .setOngoing(true)
+                .addAction(showAction)
+                .addAction(cancelAction)
+                .addAction(remindLaterAction)
                 .build();
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        // hide the notification after its selected
-        noti.flags |= Notification.FLAG_AUTO_CANCEL;
-
-        notificationManager.notify(4444, noti);
+        notificationManager.notify(notId, notification);
     }
 }

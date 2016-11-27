@@ -3,103 +3,88 @@ package com.example.harish.geomindr.activity.ebr;
 import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.example.harish.geomindr.database.DatabaseHelper;
-import com.example.harish.geomindr.service.main.ReminderService;
 
 import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
 
-
-public class PlacesDisplayTask extends AsyncTask<Object, Integer, List<HashMap<String, String>>> {
-
-    JSONObject googlePlacesJson;
-
-    DatabaseHelper mydb;
-
-    String Entity,nameEntity;
-    Context data;  //passing context from service
+class PlacesDisplayTask extends AsyncTask<Object, Integer, List<HashMap<String, String>>> {
+    // Database instance.
+    private DatabaseHelper databaseHelper;
+    // Type of entity.
+    private String entity;
+    // Name of the entity.
+    private String entityName;
+    // Passing context from service.
+    protected Context context;
 
     @Override
     protected List<HashMap<String, String>> doInBackground(Object... inputObj) {
-
-        List<HashMap<String, String>> googlePlacesList = null;
+        JSONObject googlePlacesJson;
         Places placeJsonParser = new Places();
+        List<HashMap<String, String>> googlePlacesList = null;
 
         try {
             googlePlacesJson = new JSONObject((String) inputObj[0]);
-            Entity = (String) inputObj[1];
-            nameEntity = (String) inputObj[2];
-            data = (Context) inputObj[3];
-            mydb = DatabaseHelper.getInstance(data);
+            entity = (String) inputObj[1];
+            entityName = (String) inputObj[2];
+            System.out.println(inputObj[3]);
+            context = (Context) inputObj[3];
+            databaseHelper = DatabaseHelper.getInstance(context);
             googlePlacesList = placeJsonParser.parse(googlePlacesJson);
         } catch (Exception e) {
-            Log.d("Exception", e.toString());
+            e.printStackTrace();
         }
 
-        if(googlePlacesList.size()==0)
-        {        }
-
-        //passing entity values to service
-        else
+        // If there is a place returned by Google Map API.
+        if(googlePlacesList != null && googlePlacesList.size() > 0)
         {
-            // when user enters particular entity
-            if(!nameEntity.equals("")){
+            // When the user wants particular entity.
+            if(!entityName.equals("")){
                 for (int i = 0; i < googlePlacesList.size(); i++) {
                     HashMap<String, String> googlePlace = googlePlacesList.get(i);
                     String lower = googlePlace.get("place_name").toLowerCase();
-                    if (lower.contains(nameEntity.toLowerCase())) {
-
-                        Boolean isUpdatelat = mydb.updatelat(Entity, googlePlace.get("lat"));
-                        if (!isUpdatelat)
-                            Log.d("Notifications", "Not Updated");
-                        Boolean isUpdatelong = mydb.updatelng(Entity, googlePlace.get("lng"));
-                        if (!isUpdatelong)
-                            Log.d("Notifications", "Not Updated");
-                        Boolean isUpdate1 = mydb.updateName(Entity, googlePlace.get("place_name"));
-                        if (!isUpdate1)
-                            Log.d("Notifications", "Not Updated");
+                    if (lower.contains(entityName.toLowerCase())) {
+                        databaseHelper.updateLat(entity, Double.valueOf(googlePlace.get("lat")));
+                        databaseHelper.updateLng(entity, Double.valueOf(googlePlace.get("lng")));
+                        databaseHelper.updateName(entity, googlePlace.get("place_name"));
                         break;
                     }
                 }
             }
-            // when user want any nearest entity
+            // When user want any nearest entity.
             else {
-                String place = null;
-                float distance = 20000;
+                String place;
+                boolean flag = true;
+
                 for (int i = 0; i < googlePlacesList.size(); i++) {
                     HashMap<String, String> googlePlace = googlePlacesList.get(i);
-                    double lat = Double.parseDouble(googlePlace.get("lat"));
-                    double lng = Double.parseDouble(googlePlace.get("lng"));
-                    Location loc1 = new Location("");
-                    loc1.setLatitude(lat);
-                    loc1.setLongitude(lng);
-                    Location loc2 = new Location("");
+
+                    double lat = Double.valueOf(googlePlace.get("lat"));
+                    double lng = Double.valueOf(googlePlace.get("lng"));
+
+                    Location loc = new Location("");
+                    loc.setLatitude(lat);
+                    loc.setLongitude(lng);
+
+                    /*Location loc2 = new Location("");
                     loc2.setLatitude(ReminderService.lastLocation.getLatitude());
-                    loc2.setLongitude(ReminderService.lastLocation.getLongitude());
-                    if (loc1.distanceTo(loc2) < distance) {
-                        distance = loc1.distanceTo(loc2);
-                        place = googlePlace.get("place_name");
+                    loc2.setLongitude(ReminderService.lastLocation.getLongitude());*/
+
+                    //distance = loc1.distanceTo(loc2);
+                    place = googlePlace.get("place_name");
+
+                    if (flag) {
+                        databaseHelper.updateLat(entity, lat);
+                        databaseHelper.updateLng(entity, lng);
+                        databaseHelper.updateName(entity, place);
+                        flag = false;
                     }
-                }
-
-                for (int i = 0; i < googlePlacesList.size(); i++) {
-                    HashMap<String, String> googlePlace = googlePlacesList.get(i);
-                    if (place.equals(googlePlace.get("place_name"))) {
-
-                        Boolean isUpdatelat = mydb.updatelat(Entity, googlePlace.get("lat"));
-                        if (!isUpdatelat)
-                            Log.d("Notifications", "Not Updated");
-                        Boolean isUpdatelong = mydb.updatelng(Entity, googlePlace.get("lng"));
-                        if (!isUpdatelong)
-                            Log.d("Notifications", "Not Updated");
-                        Boolean isUpdate1 = mydb.updateName(Entity, place);
-                        if (!isUpdate1)
-                            Log.d("Notifications", "Not Updated");
-                        break;
+                    else {
+                        boolean ins = databaseHelper.insertRecordEBR(entity, "00:00", place, lat, lng, -1);
                     }
                 }
             }
@@ -113,7 +98,3 @@ public class PlacesDisplayTask extends AsyncTask<Object, Integer, List<HashMap<S
 
     }
 }
-
-
-
-

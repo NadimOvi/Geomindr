@@ -7,54 +7,35 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingLeft="10sp"
-        android:paddingRight="10sp">
+        android:orientation="vertical"
+        android:paddingTop="15sp"
+        android:paddingLeft="17sp"
+        android:paddingRight="17sp"
+        android:paddingBottom="10sp">
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/random_location"
+            android:fontFamily="sans-serif"
             android:layout_weight="1"
-            android:id="@+id/check1"/>
+            android:id="@+id/checkAny"/>
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/particular_location"
             android:layout_weight="1"
-            android:id="@+id/check2"/>
+            android:fontFamily="sans-serif"
+            android:id="@+id/checkParticular"
+            android:labelFor="@+id/entity_name"/>
     </LinearLayout>
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Name the Place"
-        android:textAlignment="center"
         android:visibility="gone"
         android:id="@+id/entity_name"
+        android:inputType="text"
+        android:layout_marginStart="17sp"
+        android:layout_marginEnd="17sp"
         />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/cancel"
-            android:textStyle="bold"
-            android:layout_weight="1"
-            android:id="@+id/cancel"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/save"
-            android:textStyle="bold"
-            android:layout_weight="1"
-            android:id="@+id/save"/>
-    </LinearLayout>
-
 </LinearLayout>

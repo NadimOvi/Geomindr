@@ -102,7 +102,7 @@ public class FacebookConfirmPostReceiver extends BroadcastReceiver {
         parameters.putString("type", "place");
         // Coordinates corresponding to the place to be searched.
         parameters.putString("center", String.valueOf(latitude) + "," + String.valueOf(longitude));
-        // Search for facebook pages within 100 metres of user's location.
+        // Search for facebook pages within 500 metres of user's location.
         parameters.putString("distance", "500");
         request.setParameters(parameters);
         request.executeAsync();

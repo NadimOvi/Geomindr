@@ -46,6 +46,10 @@
     <string name="library">Library</string>
     <string name="movie">Movie</string>
     <string name="books">Books</string>
-    <string name="gov_off">Gov. Off.</string>
+    <string name="gov_off">Govt. Off.</string>
     <string name="petrol">Petrol</string>
+    <string name="any_location">Any Location</string>
+    <string name="info_window_location_name">Location :</string>
+    <string name="info_window_location_distance">Distance :</string>
+    <string name="post_to_facebook">Post to Facebook</string>
 </resources>

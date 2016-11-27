@@ -27,8 +27,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:supportsRtl="true"
-        >
+        android:supportsRtl="true">
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
@@ -57,64 +56,79 @@
         <activity
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:label="@string/app_name"/>
+            android:label="@string/app_name" />
 
         <service
             android:name=".service.main.ReminderService"
             android:enabled="true" />
 
-        <activity android:name=".activity.map.TaskMap"
-            android:theme="@style/AppTheme"/>
-        <activity android:name=".activity.tbr.alarm.AlarmTask"
-            android:theme="@style/AppTheme"/>
-        <activity android:name=".activity.tbr.message.MessageTask"
-            android:theme="@style/AppTheme"/>
+        <activity
+            android:name=".activity.map.TaskMap"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".activity.tbr.alarm.AlarmTask"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".activity.tbr.message.MessageTask"
+            android:theme="@style/AppTheme" />
 
-        <receiver android:name=".broadcast.alarm.AlarmDismissNotificationReceiver"
-            android:theme="@style/AppTheme.NoActionBar"/>
+        <receiver
+            android:name=".broadcast.alarm.AlarmDismissNotificationReceiver"
+            android:theme="@style/AppTheme.NoActionBar" />
         <receiver
             android:name=".broadcast.message.MessageConfirmSendReceiver"
             android:enabled="true"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
         <receiver
             android:name=".broadcast.message.MessageDeclineSendReceiver"
             android:enabled="true"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
         <receiver
             android:name=".broadcast.message.MessageSelectAgainReceiver"
             android:enabled="true"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
 
-        <activity android:name=".activity.tbr.facebook.FacebookTask"
-            android:theme="@style/AppTheme"/>
+        <activity
+            android:name=".activity.tbr.facebook.FacebookTask"
+            android:theme="@style/AppTheme" />
 
         <receiver
             android:name=".broadcast.facebook.FacebookConfirmPostReceiver"
             android:enabled="true"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
         <receiver
             android:name=".broadcast.facebook.FacebookDeclinePostReceiver"
             android:enabled="true"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
         <receiver
             android:name=".broadcast.facebook.FacebookSelectAgainReceiver"
             android:enabled="true"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
 
-        <activity android:name=".activity.ebr.EntityBasedReminderActivity" android:theme="@style/AppTheme" />
-        <activity android:name=".activity.ebr.PlaceMap"
-            android:theme="@style/AppTheme"/>
+        <activity
+            android:name=".activity.ebr.EntityBasedReminderActivity"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".activity.ebr.PlaceMap"
+            android:theme="@style/AppTheme" />
 
         <receiver
             android:name=".broadcast.ebr.Cancel"
             android:enabled="true"
-            android:exported="true"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
 
-        <activity android:name=".activity.ebr.TimerNotification"
-            android:launchMode="singleInstance" android:excludeFromRecents="true"
-            android:taskAffinity="" android:theme="@android:style/Theme.Dialog"
-            />
+        <activity
+            android:name=".activity.ebr.TimerNotification"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Dialog" />
+
+        <receiver
+            android:name=".broadcast.ebr.showMap"
+            android:enabled="true"
+            android:exported="true"></receiver>
     </application>
 
 </manifest>

@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Places {
+class Places {
 
-    public List<HashMap<String, String>> parse(JSONObject jsonObject) {
+    List<HashMap<String, String>> parse(JSONObject jsonObject) {
         JSONArray jsonArray = null;
         try {
             jsonArray = jsonObject.getJSONArray("results");
@@ -22,8 +22,8 @@ public class Places {
 
     private List<HashMap<String, String>> getPlaces(JSONArray jsonArray) {
         int placesCount = jsonArray.length();
-        List<HashMap<String, String>> placesList = new ArrayList<HashMap<String, String>>();
-        HashMap<String, String> placeMap = null;
+        List<HashMap<String, String>> placesList = new ArrayList<>();
+        HashMap<String, String> placeMap;
 
         for (int i = 0; i < placesCount; i++) {
             try {
@@ -38,12 +38,12 @@ public class Places {
     }
 
     private HashMap<String, String> getPlace(JSONObject googlePlaceJson) {
-        HashMap<String, String> googlePlaceMap = new HashMap<String, String>();
+        HashMap<String, String> googlePlaceMap = new HashMap<>();
         String placeName = "-NA-";
         String vicinity = "-NA-";
-        String latitude = "";
-        String longitude = "";
-        String reference = "";
+        String latitude;
+        String longitude;
+        String reference;
 
         try {
             if (!googlePlaceJson.isNull("name")) {
@@ -66,4 +66,3 @@ public class Places {
         return googlePlaceMap;
     }
 }
-
