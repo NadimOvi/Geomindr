@@ -21,10 +21,9 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
     // List containing all the reminder in the database.
     public static List<Reminder> reminderList;
     // Context from which the class 'ReminderRecyclerAdapter' is called.
-    private Context context;
+    protected Context context;
     private SparseBooleanArray selectedRecyclerViewItems;
     private Vibrator vibratorService;
-
 
     public ReminderRecyclerAdapter(Context context) {
         this.context = context;
@@ -96,8 +95,18 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
             selectedRecyclerViewItems.delete(position);
         } else {
             vibratorService.vibrate(50);
-            clearSelections();
-            selectedRecyclerViewItems.put(position, true);
+
+            if (reminderList.get(position).getTaskId() == 3) {
+                selectedRecyclerViewItems.put(position, true);
+                selectedRecyclerViewItems.put(position+1, true);
+            }
+            else if (reminderList.get(position).getTaskId() == 5) {
+                selectedRecyclerViewItems.put(position, true);
+                selectedRecyclerViewItems.put(position-1, true);
+            }
+            else {
+                selectedRecyclerViewItems.put(position, true);
+            }
         }
 
         notifyItemChanged(position);

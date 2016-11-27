@@ -27,9 +27,6 @@ import com.example.harish.geomindr.activity.ebr.PlaceMap;
 import com.example.harish.geomindr.activity.ebr.TimerNotification;
 import com.example.harish.geomindr.broadcast.alarm.AlarmDismissNotificationReceiver;
 import com.example.harish.geomindr.broadcast.ebr.Cancel;
-import com.example.harish.geomindr.broadcast.facebook.FacebookConfirmPostReceiver;
-import com.example.harish.geomindr.broadcast.facebook.FacebookDeclinePostReceiver;
-import com.example.harish.geomindr.broadcast.facebook.FacebookSelectAgainReceiver;
 import com.example.harish.geomindr.broadcast.message.MessageConfirmSendReceiver;
 import com.example.harish.geomindr.broadcast.message.MessageDeclineSendReceiver;
 import com.example.harish.geomindr.broadcast.message.MessageSelectAgainReceiver;
@@ -130,36 +127,12 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
             if (res.getCount() > 0) {
                 // Iterating through the retrieved records.
                 while (res.moveToNext()) {
-                    // If it is a location based facebook reminder, then task_id equals 1.
-                    if (res.getInt(1) == 1) {
-                        // Create a Location object for destination location
-                        Location destLocation = new Location("dest_location");
-                        destLocation.setLatitude(res.getDouble(9));
-                        destLocation.setLongitude(res.getDouble(10));
-
-                        // Calculate the distance between device's current location and destination location.
-                        double distance = lastLocation.distanceTo(destLocation);
-
-                        // If the distance is less than radius, then pop out the notification.
-                        if (distance < res.getInt(11) && res.getInt(12) == 0) {
-                            // Change the reminder status to 1 so that it does not get triggered again.
-                            databaseHelper.updateStatus(res.getInt(0), 1);
-                            sendFacebookNotification(res.getString(6), res.getString(8),
-                                    String.valueOf(curLatitude), String.valueOf(curLongitude));
-                        }
-                        // If the reminder has already been triggered and user has
-                        // left the location, then change the status back to 0 again.
-                        else if (res.getInt(12) == 1 && distance > 2.5 * (res.getInt(11))) {
-                            // Change the reminder status to 0 so that it can be triggered again.
-                            databaseHelper.updateStatus(res.getInt(0), 0);
-                        }
-                    }
                     // If it is a location based message reminder (arrival type), then task_id equals 3.
                     // Also check the status of the reminder. If status is 0 then it means that
                     // app has not sent the arrival message. If status is 1 then it means that app has already
                     // sent the arrival message. The status will change from 1 to 0 when app sends departure
                     // message to the user.
-                    else if (res.getInt(1) == 3 && res.getInt(12) == 0) {
+                    if (res.getInt(1) == 3 && res.getInt(12) == 0) {
                         // Create a Location object for destination location.
                         Location destLocation = new Location("dest_location");
                         destLocation.setLatitude(res.getDouble(9));
@@ -334,58 +307,6 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
 
         alertDialog.show();
 
-    }
-
-    // Send facebook task reminder notification.
-    public void sendFacebookNotification(String msg, String location, String latitude, String longitude) {
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        // Intent passed to the Broadcast Receiver if user selects 'Yes'.
-        Intent confirmIntent = new Intent(ReminderService.this, FacebookConfirmPostReceiver.class);
-        // Pass message to post on facebook wall.
-        confirmIntent.putExtra("msg", msg);
-        // Pass location to post on facebook wall.
-        confirmIntent.putExtra("location", location);
-        // Pass Latitude and longitude of the location.
-        confirmIntent.putExtra("latitude", latitude);
-        confirmIntent.putExtra("longitude", longitude);
-
-        // Intent passed to the Broadcast Receiver if user selects 'No'.
-        Intent declineIntent = new Intent(ReminderService.this, FacebookDeclinePostReceiver.class);
-
-        // Intent passed to the Broadcast Receiver if user does not select anything.
-        Intent selectIntent = new Intent(ReminderService.this, FacebookSelectAgainReceiver.class);
-
-        // If user selects yes.
-        PendingIntent confirmPendingIntent = PendingIntent.getBroadcast
-                (ReminderService.this, 0, confirmIntent, 0);
-        // If user selects no.
-        PendingIntent declinePendingIntent = PendingIntent.getBroadcast
-                (ReminderService.this, 0, declineIntent, 0);
-        // If user clicks on the notification.
-        PendingIntent selectPendingIntent = PendingIntent.getBroadcast
-                (ReminderService.this, 0, selectIntent, 0);
-
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(ReminderService.this)
-                // Setting the title of the notification.
-                .setContentTitle("Facebook Post Alert").setSmallIcon(R.drawable.ic_create_white_24dp)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText("Looks like you are at " + location + "."
-                        + " Do you want to post \"" + msg + "\" to " + "your Facebook wall."))
-                // Vibrate the device twice when notification pops out.
-                .setDefaults(Notification.DEFAULT_VIBRATE)
-                // Sound the system's default ringtone when notification pops out.
-                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
-                // Restrict user from swiping out the notification.
-                .setOngoing(true)
-                // Add Yes action to the notification.
-                .addAction(R.drawable.ic_check_white_24dp, "Yes", confirmPendingIntent)
-                // Add No action to the notification.
-                .addAction(R.drawable.ic_close_white_24dp, "No", declinePendingIntent);
-
-        // Set pending intent to the notification.
-        notificationBuilder.setContentIntent(selectPendingIntent);
-        // Finally, display the notification to the user.
-        notificationManager.notify(1111, notificationBuilder.build());
     }
 
     // Send alarm task reminder to the user.

@@ -30,10 +30,8 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.example.harish.geomindr.database.DatabaseHelper;
-import com.example.harish.geomindr.fragment.ebr.DemoFragment1;
 import com.example.harish.geomindr.fragment.main.HomeFragment;
 import com.example.harish.geomindr.fragment.other.DemoFragment2;
-import com.example.harish.geomindr.fragment.tbr.TaskBasedReminderFragment;
 import com.example.harish.geomindr.service.main.ReminderService;
 
 import static com.example.harish.geomindr.service.main.ReminderService.stopService;
@@ -205,16 +203,6 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_home) {
             setTitle("Geomindr");
             fragment = new HomeFragment();
-        }
-        // If task based reminder is selected.
-        else if (id == R.id.nav_task) {
-            setTitle("Task Based Reminder");
-            fragment = new TaskBasedReminderFragment();
-        }
-        // If entity based reminder is selected.
-        else if (id == R.id.nav_entity) {
-            setTitle("Entity Based Reminder");
-            fragment = new DemoFragment1();
         }
         // If settings item is selected.
         else if (id == R.id.nav_settings) {

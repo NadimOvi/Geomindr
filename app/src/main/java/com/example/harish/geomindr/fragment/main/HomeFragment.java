@@ -60,6 +60,9 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
                              @Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_home, container, false);
 
+        getActivity().getWindow().setStatusBarColor(ContextCompat.
+            getColor(getContext(), R.color.colorPrimaryDark));
+
         // Setting the FloatingActionMenu and FloatingActionButtons.
         final FloatingActionMenu addReminderFAM = (FloatingActionMenu)
                 view.findViewById(R.id.add_reminder);
@@ -78,75 +81,77 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
         taskReminderList = (RecyclerView) view.findViewById(R.id.reminder_list);
 
         // Action Mode Objects
-        taskReminderListGestureDetector = new GestureDetectorCompat(getContext(), new TaskReminderListOnGestureListener());
+        taskReminderListGestureDetector = new GestureDetectorCompat(getContext(),
+                new TaskReminderListOnGestureListener());
         taskReminderListActionModeCallback =
-                        new ActionMode.Callback() {
-                            private int statusBarColor;
+            new ActionMode.Callback() {
+                int statusBarColor;
 
-                            @Override
-                            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                                MenuInflater inflater = mode.getMenuInflater();
-                                inflater.inflate(R.menu.action_mode_options_menu, menu);
+                @Override
+                public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                    MenuInflater inflater = mode.getMenuInflater();
+                    inflater.inflate(R.menu.action_mode_options_menu, menu);
 
-                                // hide FAM
-                                if (addReminderFAM.isOpened())
-                                    addReminderFAM.close(true);
-                                addReminderFAM.setVisibility(View.GONE);
+                    // hide FAM
+                    if (addReminderFAM.isOpened())
+                        addReminderFAM.close(true);
+                    addReminderFAM.setVisibility(View.GONE);
 
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                    //hold current color of status bar
-                                    statusBarColor = getActivity().getWindow().getStatusBarColor();
-                                    //set your color
-                                    getActivity().getWindow()
-                                            .setStatusBarColor(ContextCompat
-                                                    .getColor(mContext, R.color.colorPrimaryDark));
-                                }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        //hold current color of status bar
+                        statusBarColor = getActivity().getWindow().getStatusBarColor();
+                        //set your color
+                        getActivity().getWindow()
+                                .setStatusBarColor(ContextCompat
+                                        .getColor(mContext, R.color.colorPrimaryDark));
 
-                                return true;
-                            }
+                    }
 
-                            @Override
-                            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                                return false;
-                            }
+                    return true;
+                }
 
-                            @Override
-                            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                                List<Integer> selectedItemPositions
-                                        = taskReminderListAdapter.getSelectedItems();
-                                int currPos = -1;
-                                for (int i = selectedItemPositions.size() - 1; i >= 0; i--) {
-                                    currPos = selectedItemPositions.get(i);
-                                }
+                @Override
+                public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                    mode.setTitle("Delete Reminder");
+                    return false;
+                }
 
-                                switch (item.getItemId()) {
-                                    case R.id.option_edit:
-                                        makeText(getContext(), "Task reminder edited.", Toast.LENGTH_SHORT).show();
+                @Override
+                public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                    mode.setTitle("Voila");
+                    List<Integer> selectedItemPositions
+                            = taskReminderListAdapter.getSelectedItems();
+                    int currPos = -1;
+                    DatabaseHelper databaseHelper = DatabaseHelper.getInstance(getContext());
 
-                                        mode.finish();
-                                        return true;
-                                    case R.id.option_delete:
-                                        makeText(getContext(), "Task reminder Deleted.", Toast.LENGTH_SHORT).show();
-                                        Reminder tbr = reminderList.get(currPos);
-                                        DatabaseHelper databaseHelper = DatabaseHelper.getInstance(getContext());
-                                        databaseHelper.deleteTask(tbr.getReminderId());
-                                        reminderList.remove(currPos);
-                                        taskReminderListAdapter.notifyDataSetChanged();
-                                        mode.finish();
-                                        return true;
-                                    default:
-                                        return false;
-                                }
-                            }
+                    for (int i = selectedItemPositions.size() - 1; i >= 0; i--) {
+                        currPos = selectedItemPositions.get(i);
 
-                            @Override
-                            public void onDestroyActionMode(ActionMode mode) {
-                                taskReminderListActionMode = null;
-                                taskReminderListAdapter.clearSelections();
+                        if (currPos >= 0) {
+                            Reminder tbr = reminderList.get(currPos);
+                            databaseHelper.deleteTask(tbr.getReminderId());
+                            reminderList.remove(currPos);
+                        }
+                        else {
+                            Toast.makeText(mContext, "No reminder selected.", Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+                    }
 
-                                addReminderFAM.setVisibility(View.VISIBLE);
-                            }
-                        };
+                    makeText(getContext(), "Reminder deleted.", Toast.LENGTH_SHORT).show();
+                    taskReminderListAdapter.notifyDataSetChanged();
+                    mode.finish();
+                    return true;
+                }
+
+                @Override
+                public void onDestroyActionMode(ActionMode mode) {
+                    taskReminderListActionMode = null;
+                    taskReminderListAdapter.clearSelections();
+
+                    addReminderFAM.setVisibility(View.VISIBLE);
+                }
+            };
 
         // Setting the 'Alarm Task' FloatingActionButton programmatically
         // because we will show it only if user clicks on 'Task Based Reminder' FloatingActionButton.
@@ -238,12 +243,12 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
 
     @Override
     public void onTouchEvent(RecyclerView rv, MotionEvent e) {
-        return;
+
     }
 
     @Override
     public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-        return;
+
     }
 
     @Override

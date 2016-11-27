@@ -7,14 +7,6 @@
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_home_black_24dp"
             android:title="@string/nav_home" />
-        <item
-            android:id="@+id/nav_task"
-            android:icon="@drawable/ic_create_black_24dp"
-            android:title="@string/nav_task" />
-        <item
-            android:id="@+id/nav_entity"
-            android:icon="@drawable/ic_menu_location"
-            android:title="@string/nav_entity" />
     </group>
 
     <group android:id="@+id/nav_group2">
