@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
@@ -215,5 +215,19 @@
                 android:background="@color/button_unclicked"
                 android:id="@+id/btn_gas"/>
         </LinearLayout>
+
+        <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
+            android:id="@+id/radius"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:dsb_min="100"
+            app:dsb_max="2000"
+            app:dsb_value="1000"
+            app:dsb_progressColor="@color/colorPrimaryDark"
+            app:dsb_indicatorColor="@color/colorPrimaryDark"
+            app:dsb_indicatorFormatter="Radius: %d"
+            android:layout_marginEnd="-13dp"
+            android:layout_marginStart="-13dp"/>
     </LinearLayout>
 </ScrollView>

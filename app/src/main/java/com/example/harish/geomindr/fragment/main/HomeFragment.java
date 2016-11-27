@@ -118,10 +118,10 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
 
                 @Override
                 public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                    mode.setTitle("Voila");
                     List<Integer> selectedItemPositions
                             = taskReminderListAdapter.getSelectedItems();
                     int currPos = -1;
+                    boolean flag = false;
                     DatabaseHelper databaseHelper = DatabaseHelper.getInstance(getContext());
 
                     for (int i = selectedItemPositions.size() - 1; i >= 0; i--) {
@@ -131,6 +131,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
                             Reminder tbr = reminderList.get(currPos);
                             databaseHelper.deleteTask(tbr.getReminderId());
                             reminderList.remove(currPos);
+                            flag = true;
                         }
                         else {
                             Toast.makeText(mContext, "No reminder selected.", Toast.LENGTH_SHORT).show();
@@ -138,9 +139,16 @@ public class HomeFragment extends Fragment implements RecyclerView.OnItemTouchLi
                         }
                     }
 
-                    makeText(getContext(), "Reminder deleted.", Toast.LENGTH_SHORT).show();
-                    taskReminderListAdapter.notifyDataSetChanged();
-                    mode.finish();
+                    if (flag) {
+                        makeText(getContext(), "Reminder deleted.", Toast.LENGTH_SHORT).show();
+                        taskReminderListAdapter.notifyDataSetChanged();
+                        mode.finish();
+                    }
+                    else {
+                        Toast.makeText(mContext, "No reminder selected.", Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+
                     return true;
                 }
 

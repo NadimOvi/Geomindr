@@ -189,7 +189,7 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
                     saveData("post_office", "");
                 }
                 else{
-                    postalCheck = true;
+                    postalCheck = false;
                     postal.setBackgroundColor(ContextCompat.
                             getColor(EntityBasedReminderActivity.this, R.color.button_unclicked));
                     deleteData("post_office");
