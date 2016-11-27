@@ -91,22 +91,24 @@ public class ReminderRecyclerAdapter extends RecyclerView.Adapter<ReminderRecycl
     // Methods for implementing Selection using contextActionMode
 
     public void toggleSelection(int position) {
-        if (selectedRecyclerViewItems.get(position, false)) {
-            selectedRecyclerViewItems.delete(position);
-        } else {
+        if (position >= 0) {
+            if (selectedRecyclerViewItems.get(position, false)) {
+                selectedRecyclerViewItems.delete(position);
+            } else {
+                vibratorService.vibrate(50);
+                if (reminderList.get(position).getTaskId() == 3) {
+                    selectedRecyclerViewItems.put(position, true);
+                    selectedRecyclerViewItems.put(position + 1, true);
+                } else if (reminderList.get(position).getTaskId() == 5) {
+                    selectedRecyclerViewItems.put(position, true);
+                    selectedRecyclerViewItems.put(position - 1, true);
+                } else {
+                    selectedRecyclerViewItems.put(position, true);
+                }
+            }
+        }
+        else {
             vibratorService.vibrate(50);
-
-            if (reminderList.get(position).getTaskId() == 3) {
-                selectedRecyclerViewItems.put(position, true);
-                selectedRecyclerViewItems.put(position+1, true);
-            }
-            else if (reminderList.get(position).getTaskId() == 5) {
-                selectedRecyclerViewItems.put(position, true);
-                selectedRecyclerViewItems.put(position-1, true);
-            }
-            else {
-                selectedRecyclerViewItems.put(position, true);
-            }
         }
 
         notifyItemChanged(position);
