@@ -46,50 +46,43 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:label="@string/app_name"
-            android:screenOrientation="portrait"/>
-
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activity.ebr.EntityBasedReminderActivity"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme"
-            android:screenOrientation="portrait" />
-
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.ebr.PlaceMap"
-            android:theme="@style/AppTheme"
+            android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity"/>
-
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.map.TaskMap"
-            android:theme="@style/AppTheme"
-            android:screenOrientation="portrait"/>
-
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.tbr.alarm.AlarmTask"
-            android:theme="@style/AppTheme"
+            android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity"/>
-
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.tbr.message.MessageTask"
-            android:theme="@style/AppTheme"
+            android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity"/>
-
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.ebr.TimerNotification"
             android:excludeFromRecents="true"
@@ -100,34 +93,37 @@
         <service
             android:name=".service.main.ReminderService"
             android:enabled="true"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
 
         <receiver
             android:name=".broadcast.alarm.AlarmDismissNotificationReceiver"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <receiver
             android:name=".broadcast.message.MessageConfirmSendReceiver"
             android:enabled="true"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <receiver
             android:name=".broadcast.message.MessageDeclineSendReceiver"
             android:enabled="true"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <receiver
             android:name=".broadcast.message.MessageSelectAgainReceiver"
             android:enabled="true"
             android:theme="@style/AppTheme.NoActionBar" />
-
-            android:theme="@style/AppTheme.NoActionBar" />
-
+        android:theme="@style/AppTheme.NoActionBar" />
         <receiver
             android:name=".broadcast.ebr.Cancel"
             android:enabled="true"
-            android:theme="@style/AppTheme.NoActionBar" />
-
+            android:theme="@style/AppTheme.NoActionBar" >
+        </receiver>
+        <receiver
+            android:name=".broadcast.service.WifiReceiver"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

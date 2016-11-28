@@ -1,7 +1,9 @@
 package com.example.harish.geomindr.activity.ebr;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -20,6 +22,8 @@ import com.example.harish.geomindr.R;
 import com.example.harish.geomindr.database.DatabaseHelper;
 import com.example.harish.geomindr.service.main.ReminderService;
 
+import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -29,6 +33,8 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
     Button atm, food, hospital, police, mall,
             pharmacy, gym, bank, postal, bar,
             lib, movie, books, gov, gas;
+
+    DiscreteSeekBar radius;
 
      /*Checking if button is clicked or not.
      If 0 then not clicked and if 1 then clicked.*/
@@ -72,6 +78,43 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         books = (Button) findViewById(R.id.btn_books);
         gov = (Button) findViewById(R.id.btn_gov);
         gas = (Button) findViewById(R.id.btn_gas);
+
+        radius = (DiscreteSeekBar) findViewById(R.id.radius);
+
+        setRadius();
+
+        radius.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
+            @Override
+            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
+                // Getting SharedPreference instance.
+                // We will be using SharedPreferences to provide unique ID to reminders.
+                SharedPreferences sharedPreferences = getApplicationContext().
+                        getSharedPreferences("RADIUS", Context.MODE_PRIVATE);
+                // Getting SharedPreferences.Editor instance.
+                // SharedPreferences.Editor instance is required to edit the SharedPreference file.
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                if (sharedPreferences.getInt("radius", -1) == -1) {
+                    editor.putInt("radius", 1000);
+                    ReminderService.PROXIMITY_RADIUS = 1000;
+                }
+                else {
+                    editor.putInt("radius", seekBar.getProgress());
+                    ReminderService.PROXIMITY_RADIUS = seekBar.getProgress();
+                }
+                // Apply the changes to the SharedPreferences.
+                editor.apply();
+            }
+        });
 
         databaseHelper = DatabaseHelper.getInstance(EntityBasedReminderActivity.this);
 
@@ -391,6 +434,15 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
 
     }
 
+    private void setRadius() {
+        // Getting SharedPreference instance.
+        // We will be using SharedPreferences to provide unique ID to reminders.
+        SharedPreferences sharedPreferences = getApplicationContext().
+                getSharedPreferences("RADIUS", Context.MODE_PRIVATE);
+        ReminderService.PROXIMITY_RADIUS = sharedPreferences.getInt("radius", 1000);
+        radius.setProgress(ReminderService.PROXIMITY_RADIUS);
+    }
+
     //Dialog box for particular entities where pafticular location can matter for the user
     private void showRemindAtDialog(final int btnPos) {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(EntityBasedReminderActivity.this);
@@ -697,5 +749,11 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
     }
 }

@@ -24,7 +24,6 @@ import android.view.View;
 import com.example.harish.geomindr.R;
 import com.example.harish.geomindr.activity.ebr.GooglePlacesReadTask;
 import com.example.harish.geomindr.activity.ebr.PlaceMap;
-import com.example.harish.geomindr.activity.ebr.TimerNotification;
 import com.example.harish.geomindr.broadcast.alarm.AlarmDismissNotificationReceiver;
 import com.example.harish.geomindr.broadcast.ebr.Cancel;
 import com.example.harish.geomindr.broadcast.message.MessageConfirmSendReceiver;
@@ -59,7 +58,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
     // Creating an object of DatabaseHelper class.
     DatabaseHelper databaseHelper;
     // Radius for Entity Based Reminder.
-    int PROXIMITY_RADIUS = 1000;
+    public static int PROXIMITY_RADIUS;
     String GOOGLE_API_KEY = "AIzaSyA68JFWLgTb_UzQQUUR_0ystLn6MFAvvR8";
 
     @Override
@@ -114,7 +113,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
             // Only for debugging purpose.
             curLongitude = lastLocation.getLongitude();
 
-            System.out.println(String.valueOf(curLatitude) + " : " + String.valueOf(curLongitude));
+            //System.out.println(String.valueOf(curLatitude) + " : " + String.valueOf(curLongitude));
 
             // Access reminder objects from database and check if a reminder needs to be triggered.
 
@@ -228,6 +227,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
 
         // Check if there is something in the database
         if (res.getCount() > 0) {
+
             // Iterating through the retrieved records.
             while (res.moveToNext()) {
                 // Check only if EBR record is inactive.
@@ -246,7 +246,6 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
                 int dataHour = Integer.parseInt(data_time[0]);
                 int dataMin = Integer.parseInt(data_time[1]);
                 if ((res.getInt(6) == 0 && res.getDouble(3) == 0.0 && res.getDouble(4) == 0.0)) {
-
                     if (dataHour < currHour || (dataHour == currHour && dataMin <= currMin)) {
                         // Requesting this url for finding nearest locations
                         String googlePlacesUrl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?";
@@ -275,9 +274,8 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         }
 
         res.close();
+        stopSelf();
     }
-
-
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
@@ -463,26 +461,26 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         cancelIntent.putExtra("entity", entity);
         cancelIntent.putExtra("notId", notId);
 
-        //Intent for Remind later the reminder
+        /*//Intent for Remind later the reminder
         Intent remindLaterIntent = new Intent(ReminderService.this, TimerNotification.class);
         remindLaterIntent.putExtra("entity", entity);
-        remindLaterIntent.putExtra("notId", notId);
+        remindLaterIntent.putExtra("notId", notId);*/
 
         //Intents to pass in actions
         PendingIntent mapPendingIntent = PendingIntent.getActivity
                 (ReminderService.this, (int) System.currentTimeMillis(), mapIntent, 0);
         PendingIntent cancelPendingIntent = PendingIntent.getBroadcast
                 (ReminderService.this, (int) System.currentTimeMillis(), cancelIntent, 0);
-        PendingIntent remindLaterPendingIntent = PendingIntent.getActivity
-                (ReminderService.this, (int) System.currentTimeMillis(), remindLaterIntent, 0);
+        /*PendingIntent remindLaterPendingIntent = PendingIntent.getActivity
+                (ReminderService.this, (int) System.currentTimeMillis(), remindLaterIntent, 0);*/
 
         //Intents to set the action
         NotificationCompat.Action showAction = new NotificationCompat.Action.Builder
                 (R.drawable.ic_check_white_24dp, "Yes", mapPendingIntent).build();
         NotificationCompat.Action cancelAction = new NotificationCompat.Action.Builder
                 (R.drawable.ic_close_white_24dp, "No", cancelPendingIntent).build();
-        NotificationCompat.Action remindLaterAction = new NotificationCompat.Action.Builder
-                (R.drawable.ic_watch_later_white_24dp, "Later", remindLaterPendingIntent).build();
+        /*NotificationCompat.Action remindLaterAction = new NotificationCompat.Action.Builder
+                (R.drawable.ic_watch_later_white_24dp, "Later", remindLaterPendingIntent).build();*/
 
         //Switch cases to show the readable name on notification from the entity tag
         switch (entity) {
@@ -546,7 +544,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
                 .setOngoing(true)
                 .addAction(showAction)
                 .addAction(cancelAction)
-                .addAction(remindLaterAction)
+//                .addAction(remindLaterAction)
                 .build();
 
         //Sending the notification

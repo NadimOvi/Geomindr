@@ -9,7 +9,7 @@ import java.net.URL;
 
 class Http {
 
-    //Http url connection is used for retreiving the data from the web url
+    //Http url connection is used for retrieving the data from the web url
     String read(String httpUrl) throws IOException {
         String httpData = "";
         HttpURLConnection httpURLConnection;

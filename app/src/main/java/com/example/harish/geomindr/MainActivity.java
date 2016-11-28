@@ -118,18 +118,37 @@ public class MainActivity extends AppCompatActivity
 
         // Getting SharedPreference instance.
         // We will be using SharedPreferences to provide unique ID to reminders.
-        SharedPreferences sharedPreferences = getApplicationContext().
+        SharedPreferences sharedPreferencesCounter = getApplicationContext().
                 getSharedPreferences("COUNTER", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferencesRadius = getApplicationContext().
+                getSharedPreferences("RADIUS", Context.MODE_PRIVATE);
         // Getting SharedPreferences.Editor instance.
         // SharedPreferences.Editor instance is required to edit the SharedPreference file.
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+        SharedPreferences.Editor editorCounter = sharedPreferencesCounter.edit();
+        SharedPreferences.Editor editorRadius = sharedPreferencesRadius.edit();
         // Check if we have a 'counter' key in our SharedPreferences.
         // The value of this key is used to give unique ID to the reminders.
-        if (sharedPreferences.getInt("counter", -1) == -1) {
-            editor.putInt("counter", 0);
+        if (sharedPreferencesCounter.getInt("counter", -1) == -1) {
+            editorCounter.putInt("counter", 0);
+        }
+        if (sharedPreferencesRadius.getInt("radius", -1) == -1) {
+            editorRadius.putInt("radius", 1000);
+            ReminderService.PROXIMITY_RADIUS = 1000;
         }
         // Apply the changes to the SharedPreferences.
-        editor.apply();
+        editorCounter.apply();
+        editorRadius.apply();
+
+        // Starting Broadcast Receivers for Wifi and GPS.
+        // Pass an appropriate intent.
+        /*Intent wifiIntent = new Intent(this, WifiReceiver.class);
+        // 1000 is the request code for this PendingIntent.
+        PendingIntent wifiPendingIntent = PendingIntent.getBroadcast(this,
+                1000, wifiIntent, 0);
+        // Get AlarmManager to schedule start of 'ReminderService' service.
+        AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+        // Start the service after 1 second.
+        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000, wifiPendingIntent);*/
 
         // start 'HomeFragment' fragment
         startHomeFragment();
