@@ -231,21 +231,21 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
             // Iterating through the retrieved records.
             while (res.moveToNext()) {
                 // Check only if EBR record is inactive.
-                if (res.getInt(6) == 0 && res.getDouble(3) == 0.0 && res.getDouble(4) == 0.0) {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
-                    // Find current time.
-                    String currentDateTime = dateFormat.format(new Date());
-                    String indian_time[] = currentDateTime.split(":");
-                    int currHour = Integer.parseInt(indian_time[0]);
+                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
+                // Find current time.
+                String currentDateTime = dateFormat.format(new Date());
+                String indian_time[] = currentDateTime.split(":");
+                int currHour = Integer.parseInt(indian_time[0]);
 
-                    if (currHour > 12) {
-                        currHour = currHour - 12;
-                    }
+                if (currHour > 12) {
+                    currHour = currHour - 12;
+                }
 
-                    int currMin = Integer.parseInt(indian_time[1]);
-                    String data_time[] = res.getString(1).split(":");
-                    int dataHour = Integer.parseInt(data_time[0]);
-                    int dataMin = Integer.parseInt(data_time[1]);
+                int currMin = Integer.parseInt(indian_time[1]);
+                String data_time[] = res.getString(1).split(":");
+                int dataHour = Integer.parseInt(data_time[0]);
+                int dataMin = Integer.parseInt(data_time[1]);
+                if ((res.getInt(6) == 0 && res.getDouble(3) == 0.0 && res.getDouble(4) == 0.0)) {
 
                     if (dataHour < currHour || (dataHour == currHour && dataMin <= currMin)) {
                         // Requesting this url for finding nearest locations
