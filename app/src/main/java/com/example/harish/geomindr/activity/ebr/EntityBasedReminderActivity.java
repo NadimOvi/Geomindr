@@ -30,8 +30,8 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
             pharmacy, gym, bank, postal, bar,
             lib, movie, books, gov, gas;
 
-    // Checking if button is clicked or not.
-    // If 0 then not clicked and if 1 then clicked.
+     /*Checking if button is clicked or not.
+     If 0 then not clicked and if 1 then clicked.*/
     boolean atmCheck = false,
             foodCheck = false,
             hospitalCheck = false,
@@ -77,6 +77,8 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
 
         Cursor res = databaseHelper.getAllRecordsEBR();
 
+        //checking to see if the following buttons were clicked by user or not by fetching from database
+        //this check is necessary for when the user reopens the app
         while(res.moveToNext()){
             String r = res.getString(0);
             switch (r) {
@@ -143,6 +145,7 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
             }
         }
 
+        //All click listeners fro buttons
         atm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -388,6 +391,7 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
 
     }
 
+    //Dialog box for particular entities where pafticular location can matter for the user
     private void showRemindAtDialog(final int btnPos) {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(EntityBasedReminderActivity.this);
 
@@ -502,6 +506,7 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
                     Toast.makeText(EntityBasedReminderActivity.this,
                             "Please select one checkbox only.", Toast.LENGTH_SHORT).show();
                 }
+                //if any random location is allowed by the user
                 else if(checkAny.isChecked()){
                     switch (btnPos) {
                         case 2:
@@ -567,6 +572,7 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
                     }
                     dialog.cancel();
                 }
+                //if particular location is set by the user
                 else if(checkParticular.isChecked() && !entityName.getText().toString().equals("")) {
                     switch (btnPos) {
                         case 2:
@@ -650,6 +656,7 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+    //saving the data into the database
     public void saveData(String entity,String name){
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
         // Find current time
@@ -673,6 +680,7 @@ public class EntityBasedReminderActivity extends AppCompatActivity {
         }
     }
 
+    //deleting the data
     public void deleteData(String entity){
         Integer deleted = databaseHelper.deleteData(entity);
         if(deleted<=0) {

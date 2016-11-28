@@ -198,14 +198,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.delete(TABLE_TBR, "TBR_ID = ?", new String[]{String.valueOf(reminderId)});
     }
 
-    public boolean updateTime(String entity ,String realtime) {
+    /*public boolean updateTime(String entity ,String realtime) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL_1_EBR, entity);
         contentValues.put(COL_2_EBR, realtime);
         db.update(TABLE_EBR, contentValues, "ENTITY = ?",new String[] { entity });
         return true;
-    }
+    }*/
 
     public boolean updateLat(String entity, double latitude) {
         SQLiteDatabase db = this.getWritableDatabase();

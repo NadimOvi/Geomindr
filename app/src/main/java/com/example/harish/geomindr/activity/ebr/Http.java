@@ -9,6 +9,7 @@ import java.net.URL;
 
 class Http {
 
+    //Http url connection is used for retreiving the data from the web url
     String read(String httpUrl) throws IOException {
         String httpData = "";
         HttpURLConnection httpURLConnection;
@@ -19,6 +20,7 @@ class Http {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
             StringBuilder stringBuffer = new StringBuilder();
             String line;
+            //converting the bufferedReader into String
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuffer.append(line);
             }

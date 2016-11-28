@@ -5,14 +5,19 @@ import android.os.AsyncTask;
 
 public class GooglePlacesReadTask extends AsyncTask<Object, Integer, String> {
 
+    // variable to store all the data from web url in the form of JSON
     private String googlePlacesData = null;
+
+    //entity tag and name of a particular location set by the user
     private String Entity, nameEntity;
-    // passing context from the service
+
+    // passing context from the service of the database
     protected Context context;
 
     @Override
     protected String doInBackground(Object... inputObj) {
         try {
+            //adding values from the object
             String googlePlacesUrl = (String) inputObj[0];
             Entity = (String) inputObj[1];
             nameEntity = (String) inputObj[2];

@@ -451,20 +451,24 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         String notName;
         int notId = (int) System.currentTimeMillis();
 
+        //Passing all the necessary intents for PlaceMap activity for google map
         Intent mapIntent = new Intent(ReminderService.this, PlaceMap.class);
         mapIntent.putExtra("entity", entity);
         mapIntent.putExtra("curLat", lastLocation.getLatitude());
         mapIntent.putExtra("curLng", lastLocation.getLongitude());
         mapIntent.putExtra("notId", notId);
 
+        //Intent for cancelling the reminder
         Intent cancelIntent = new Intent(ReminderService.this, Cancel.class);
         cancelIntent.putExtra("entity", entity);
         cancelIntent.putExtra("notId", notId);
 
+        //Intent for Remind later the reminder
         Intent remindLaterIntent = new Intent(ReminderService.this, TimerNotification.class);
         remindLaterIntent.putExtra("entity", entity);
         remindLaterIntent.putExtra("notId", notId);
 
+        //Intents to pass in actions
         PendingIntent mapPendingIntent = PendingIntent.getActivity
                 (ReminderService.this, (int) System.currentTimeMillis(), mapIntent, 0);
         PendingIntent cancelPendingIntent = PendingIntent.getBroadcast
@@ -472,6 +476,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         PendingIntent remindLaterPendingIntent = PendingIntent.getActivity
                 (ReminderService.this, (int) System.currentTimeMillis(), remindLaterIntent, 0);
 
+        //Intents to set the action
         NotificationCompat.Action showAction = new NotificationCompat.Action.Builder
                 (R.drawable.ic_check_white_24dp, "Yes", mapPendingIntent).build();
         NotificationCompat.Action cancelAction = new NotificationCompat.Action.Builder
@@ -479,6 +484,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
         NotificationCompat.Action remindLaterAction = new NotificationCompat.Action.Builder
                 (R.drawable.ic_watch_later_white_24dp, "Later", remindLaterPendingIntent).build();
 
+        //Switch cases to show the readable name on notification from the entity tag
         switch (entity) {
             case "atm":
                 notName = "ATM";
@@ -543,6 +549,7 @@ public class ReminderService extends Service implements GoogleApiClient.Connecti
                 .addAction(remindLaterAction)
                 .build();
 
+        //Sending the notification
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(notId, notification);
     }
